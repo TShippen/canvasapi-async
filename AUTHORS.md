@@ -1,5 +1,13 @@
 # Authors
 
+`canvasapi-async` is a fork of [CanvasAPI](https://github.com/ucfopen/canvasapi).
+The authors and contributors below are credited from the upstream project; the
+fork maintainer is listed first.
+
+## Fork Maintainer
+
+- Tristan Shippen [@TShippen](https://github.com/TShippen)
+
 ## Original Authors
 
 - Matthew Emond <me@ucf.edu> [@Thetwam](https://github.com/Thetwam)

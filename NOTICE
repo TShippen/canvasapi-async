@@ -1,0 +1,13 @@
+canvasapi-async
+Copyright (c) 2026 Tristan Shippen
+
+This product is a fork of CanvasAPI, a Python API wrapper for the Canvas LMS,
+originally developed by the University of Central Florida - Center for
+Distributed Learning and licensed under the MIT License.
+
+Original project: https://github.com/ucfopen/canvasapi
+Copyright (c) 2017 University of Central Florida - Center for Distributed Learning
+
+This fork adapts CanvasAPI for asynchronous, rate-limit-aware batch access and
+is distributed under the same MIT License. See the LICENSE file for the full
+license text, which retains the original copyright notice as required.
