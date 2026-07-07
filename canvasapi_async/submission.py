@@ -173,7 +173,7 @@ class Submission(CanvasObject):
                 self.course_id, self.assignment_id, self.user_id
             ),
             file,
-            **kwargs
+            **kwargs,
         ).start()
 
         if response[0]:

@@ -505,7 +505,7 @@ class Assignment(CanvasObject):
                 self.course_id, self.id, user_id
             ),
             file,
-            **kwargs
+            **kwargs,
         ).start()
 
 
