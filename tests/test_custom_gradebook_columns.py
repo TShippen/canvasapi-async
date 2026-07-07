@@ -4,9 +4,9 @@ from urllib.parse import quote
 import requests
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.custom_gradebook_columns import ColumnData
-from canvasapi.paginated_list import PaginatedList
+from canvasapi_async import Canvas
+from canvasapi_async.custom_gradebook_columns import ColumnData
+from canvasapi_async.paginated_list import PaginatedList
 from tests import settings
 from tests.util import register_uris
 

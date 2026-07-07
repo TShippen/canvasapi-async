@@ -7,50 +7,50 @@ from urllib.parse import quote
 import requests
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import Assignment, AssignmentGroup, AssignmentOverride
-from canvasapi.blueprint import BlueprintSubscription, BlueprintTemplate
-from canvasapi.content_export import ContentExport
-from canvasapi.content_migration import ContentMigration, Migrator
-from canvasapi.course import Course, CourseNickname, LatePolicy, Page
-from canvasapi.course_epub_export import CourseEpubExport
-from canvasapi.course_event import CourseEvent
-from canvasapi.custom_gradebook_columns import CustomGradebookColumn
-from canvasapi.discussion_topic import DiscussionTopic
-from canvasapi.enrollment import Enrollment
-from canvasapi.exceptions import RequiredFieldMissing, ResourceDoesNotExist
-from canvasapi.external_feed import ExternalFeed
-from canvasapi.external_tool import ExternalTool
-from canvasapi.feature import Feature, FeatureFlag
-from canvasapi.file import File
-from canvasapi.folder import Folder
-from canvasapi.grade_change_log import GradeChangeEvent
-from canvasapi.gradebook_history import (
+from canvasapi_async import Canvas
+from canvasapi_async.assignment import Assignment, AssignmentGroup, AssignmentOverride
+from canvasapi_async.blueprint import BlueprintSubscription, BlueprintTemplate
+from canvasapi_async.content_export import ContentExport
+from canvasapi_async.content_migration import ContentMigration, Migrator
+from canvasapi_async.course import Course, CourseNickname, LatePolicy, Page
+from canvasapi_async.course_epub_export import CourseEpubExport
+from canvasapi_async.course_event import CourseEvent
+from canvasapi_async.custom_gradebook_columns import CustomGradebookColumn
+from canvasapi_async.discussion_topic import DiscussionTopic
+from canvasapi_async.enrollment import Enrollment
+from canvasapi_async.exceptions import RequiredFieldMissing, ResourceDoesNotExist
+from canvasapi_async.external_feed import ExternalFeed
+from canvasapi_async.external_tool import ExternalTool
+from canvasapi_async.feature import Feature, FeatureFlag
+from canvasapi_async.file import File
+from canvasapi_async.folder import Folder
+from canvasapi_async.grade_change_log import GradeChangeEvent
+from canvasapi_async.gradebook_history import (
     Day,
     Grader,
     SubmissionHistory,
     SubmissionVersion,
 )
-from canvasapi.grading_period import GradingPeriod
-from canvasapi.grading_standard import GradingStandard
-from canvasapi.group import Group, GroupCategory
-from canvasapi.license import License
-from canvasapi.lti_resource_link import LTIResourceLink
-from canvasapi.module import Module
-from canvasapi.new_quiz import AccommodationResponse, NewQuiz
-from canvasapi.outcome import OutcomeGroup, OutcomeLink, OutcomeResult
-from canvasapi.outcome_import import OutcomeImport
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.progress import Progress
-from canvasapi.quiz import Quiz, QuizAssignmentOverrideSet, QuizExtension
-from canvasapi.rubric import Rubric, RubricAssociation
-from canvasapi.searchresult import SearchResult
-from canvasapi.section import Section
-from canvasapi.submission import GroupedSubmission, Submission
-from canvasapi.tab import Tab
-from canvasapi.todo import Todo
-from canvasapi.usage_rights import UsageRights
-from canvasapi.user import User
+from canvasapi_async.grading_period import GradingPeriod
+from canvasapi_async.grading_standard import GradingStandard
+from canvasapi_async.group import Group, GroupCategory
+from canvasapi_async.license import License
+from canvasapi_async.lti_resource_link import LTIResourceLink
+from canvasapi_async.module import Module
+from canvasapi_async.new_quiz import AccommodationResponse, NewQuiz
+from canvasapi_async.outcome import OutcomeGroup, OutcomeLink, OutcomeResult
+from canvasapi_async.outcome_import import OutcomeImport
+from canvasapi_async.paginated_list import PaginatedList
+from canvasapi_async.progress import Progress
+from canvasapi_async.quiz import Quiz, QuizAssignmentOverrideSet, QuizExtension
+from canvasapi_async.rubric import Rubric, RubricAssociation
+from canvasapi_async.searchresult import SearchResult
+from canvasapi_async.section import Section
+from canvasapi_async.submission import GroupedSubmission, Submission
+from canvasapi_async.tab import Tab
+from canvasapi_async.todo import Todo
+from canvasapi_async.usage_rights import UsageRights
+from canvasapi_async.user import User
 from tests import settings
 from tests.util import cleanup_file, register_uris
 
@@ -1130,7 +1130,7 @@ class TestCourse(unittest.TestCase):
     def test_get_collaborations(self, m):
         register_uris({"course": ["get_collaborations"]}, m)
 
-        from canvasapi.collaboration import Collaboration
+        from canvasapi_async.collaboration import Collaboration
 
         collab_list = self.course.get_collaborations()
 

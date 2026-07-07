@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.tab import Tab
+from canvasapi_async import Canvas
+from canvasapi_async.tab import Tab
 from tests import settings
 from tests.util import register_uris
 

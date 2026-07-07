@@ -5,28 +5,28 @@ from datetime import datetime
 import pytz
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.account import Account
-from canvasapi.account_calendar import AccountCalendar
-from canvasapi.appointment_group import AppointmentGroup
-from canvasapi.calendar_event import CalendarEvent
-from canvasapi.comm_message import CommMessage
-from canvasapi.conversation import Conversation
-from canvasapi.course import Course, CourseNickname
-from canvasapi.course_epub_export import CourseEpubExport
-from canvasapi.discussion_topic import DiscussionTopic
-from canvasapi.eportfolio import EPortfolio
-from canvasapi.exceptions import RequiredFieldMissing, ResourceDoesNotExist
-from canvasapi.file import File
-from canvasapi.group import Group, GroupCategory
-from canvasapi.jwt import JWT
-from canvasapi.outcome import Outcome, OutcomeGroup
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.poll import Poll
-from canvasapi.progress import Progress
-from canvasapi.section import Section
-from canvasapi.todo import Todo
-from canvasapi.user import User
+from canvasapi_async import Canvas
+from canvasapi_async.account import Account
+from canvasapi_async.account_calendar import AccountCalendar
+from canvasapi_async.appointment_group import AppointmentGroup
+from canvasapi_async.calendar_event import CalendarEvent
+from canvasapi_async.comm_message import CommMessage
+from canvasapi_async.conversation import Conversation
+from canvasapi_async.course import Course, CourseNickname
+from canvasapi_async.course_epub_export import CourseEpubExport
+from canvasapi_async.discussion_topic import DiscussionTopic
+from canvasapi_async.eportfolio import EPortfolio
+from canvasapi_async.exceptions import RequiredFieldMissing, ResourceDoesNotExist
+from canvasapi_async.file import File
+from canvasapi_async.group import Group, GroupCategory
+from canvasapi_async.jwt import JWT
+from canvasapi_async.outcome import Outcome, OutcomeGroup
+from canvasapi_async.paginated_list import PaginatedList
+from canvasapi_async.poll import Poll
+from canvasapi_async.progress import Progress
+from canvasapi_async.section import Section
+from canvasapi_async.todo import Todo
+from canvasapi_async.user import User
 from tests import settings
 from tests.util import register_uris
 

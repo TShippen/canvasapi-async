@@ -2,9 +2,9 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.exceptions import RequiredFieldMissing
-from canvasapi.poll_choice import PollChoice
+from canvasapi_async import Canvas
+from canvasapi_async.exceptions import RequiredFieldMissing
+from canvasapi_async.poll_choice import PollChoice
 from tests import settings
 from tests.util import register_uris
 

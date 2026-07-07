@@ -3,10 +3,10 @@ import uuid
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.file import File
-from canvasapi.peer_review import PeerReview
-from canvasapi.submission import GroupedSubmission, Submission
+from canvasapi_async import Canvas
+from canvasapi_async.file import File
+from canvasapi_async.peer_review import PeerReview
+from canvasapi_async.submission import GroupedSubmission, Submission
 from tests import settings
 from tests.util import cleanup_file, register_uris
 

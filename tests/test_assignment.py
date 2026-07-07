@@ -4,20 +4,20 @@ from pathlib import Path
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import (
+from canvasapi_async import Canvas
+from canvasapi_async.assignment import (
     Assignment,
     AssignmentExtension,
     AssignmentGroup,
     AssignmentOverride,
 )
-from canvasapi.exceptions import CanvasException, RequiredFieldMissing
-from canvasapi.grade_change_log import GradeChangeEvent
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.peer_review import PeerReview
-from canvasapi.progress import Progress
-from canvasapi.submission import Submission
-from canvasapi.user import User, UserDisplay
+from canvasapi_async.exceptions import CanvasException, RequiredFieldMissing
+from canvasapi_async.grade_change_log import GradeChangeEvent
+from canvasapi_async.paginated_list import PaginatedList
+from canvasapi_async.peer_review import PeerReview
+from canvasapi_async.progress import Progress
+from canvasapi_async.submission import Submission
+from canvasapi_async.user import User, UserDisplay
 from tests import settings
 from tests.util import cleanup_file, register_uris
 

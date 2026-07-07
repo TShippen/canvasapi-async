@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.scope import Scope
+from canvasapi_async import Canvas
+from canvasapi_async.scope import Scope
 from tests import settings
 
 

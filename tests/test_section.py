@@ -2,12 +2,12 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import AssignmentOverride
-from canvasapi.enrollment import Enrollment
-from canvasapi.progress import Progress
-from canvasapi.section import Section
-from canvasapi.submission import GroupedSubmission, Submission
+from canvasapi_async import Canvas
+from canvasapi_async.assignment import AssignmentOverride
+from canvasapi_async.enrollment import Enrollment
+from canvasapi_async.progress import Progress
+from canvasapi_async.section import Section
+from canvasapi_async.submission import GroupedSubmission, Submission
 from tests import settings
 from tests.util import register_uris
 

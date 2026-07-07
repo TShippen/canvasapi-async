@@ -4,20 +4,20 @@ import sys
 
 sys.path.insert(0, (os.path.join(sys.path[0], "..")))
 
-import canvasapi  # noqa
+import canvasapi_async  # noqa
 
 exempt_files = ("__init__",)
 
 
 def find_missing_modules():
-    # get all modules visile to inspect from `canvasapi.__init__`
+    # get all modules visile to inspect from `canvasapi_async.__init__`
     module_names = [
         module_name
-        for module_name, module in inspect.getmembers(canvasapi, inspect.ismodule)
+        for module_name, module in inspect.getmembers(canvasapi_async, inspect.ismodule)
     ]
 
-    # get all .py files in canvasapi dir (without .py extension)
-    path = "canvasapi"
+    # get all .py files in canvasapi_async dir (without .py extension)
+    path = "canvasapi_async"
     filenames = [fname[:-3] for fname in os.listdir(path) if fname.endswith(".py")]
 
     missing_modules = list()

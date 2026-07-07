@@ -4,8 +4,8 @@ import unittest
 import pytz
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.account import (
+from canvasapi_async import Canvas
+from canvasapi_async.account import (
     Account,
     AccountNotification,
     AccountReport,
@@ -13,28 +13,28 @@ from canvasapi.account import (
     Role,
     SSOSettings,
 )
-from canvasapi.account_calendar import AccountCalendar
-from canvasapi.authentication_event import AuthenticationEvent
-from canvasapi.authentication_provider import AuthenticationProvider
-from canvasapi.content_migration import ContentMigration, Migrator
-from canvasapi.course import Course
-from canvasapi.course_event import CourseEvent
-from canvasapi.enrollment import Enrollment
-from canvasapi.enrollment_term import EnrollmentTerm
-from canvasapi.exceptions import CanvasException, RequiredFieldMissing
-from canvasapi.external_tool import ExternalTool
-from canvasapi.feature import Feature, FeatureFlag
-from canvasapi.grading_period import GradingPeriod
-from canvasapi.grading_standard import GradingStandard
-from canvasapi.group import Group, GroupCategory
-from canvasapi.login import Login
-from canvasapi.outcome import OutcomeGroup, OutcomeLink
-from canvasapi.outcome_import import OutcomeImport
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.rubric import Rubric
-from canvasapi.scope import Scope
-from canvasapi.sis_import import SisImport
-from canvasapi.user import User
+from canvasapi_async.account_calendar import AccountCalendar
+from canvasapi_async.authentication_event import AuthenticationEvent
+from canvasapi_async.authentication_provider import AuthenticationProvider
+from canvasapi_async.content_migration import ContentMigration, Migrator
+from canvasapi_async.course import Course
+from canvasapi_async.course_event import CourseEvent
+from canvasapi_async.enrollment import Enrollment
+from canvasapi_async.enrollment_term import EnrollmentTerm
+from canvasapi_async.exceptions import CanvasException, RequiredFieldMissing
+from canvasapi_async.external_tool import ExternalTool
+from canvasapi_async.feature import Feature, FeatureFlag
+from canvasapi_async.grading_period import GradingPeriod
+from canvasapi_async.grading_standard import GradingStandard
+from canvasapi_async.group import Group, GroupCategory
+from canvasapi_async.login import Login
+from canvasapi_async.outcome import OutcomeGroup, OutcomeLink
+from canvasapi_async.outcome_import import OutcomeImport
+from canvasapi_async.paginated_list import PaginatedList
+from canvasapi_async.rubric import Rubric
+from canvasapi_async.scope import Scope
+from canvasapi_async.sis_import import SisImport
+from canvasapi_async.user import User
 from tests import settings
 from tests.util import register_uris
 

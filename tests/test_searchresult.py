@@ -2,11 +2,11 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import Assignment
-from canvasapi.discussion_topic import DiscussionTopic
-from canvasapi.page import Page
-from canvasapi.searchresult import SearchResult
+from canvasapi_async import Canvas
+from canvasapi_async.assignment import Assignment
+from canvasapi_async.discussion_topic import DiscussionTopic
+from canvasapi_async.page import Page
+from canvasapi_async.searchresult import SearchResult
 from tests import settings
 from tests.util import register_uris
 

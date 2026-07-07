@@ -4,9 +4,9 @@ import unittest
 
 import requests_mock
 
-from canvasapi.canvas_object import CanvasObject
-from canvasapi.folder import Folder
-from canvasapi.util import combine_kwargs, obj_or_id
+from canvasapi_async.canvas_object import CanvasObject
+from canvasapi_async.folder import Folder
+from canvasapi_async.util import combine_kwargs, obj_or_id
 from scripts.validate_docstrings import validate_method
 
 
@@ -93,7 +93,7 @@ class ExampleMethods(CanvasObject):
         :calls: `PUT /api/v1/files/:id  \
         <https://canvas.instructure.com/doc/api/files.html#method.files.destroy>`_
 
-        :rtype: :class:`canvasapi.file.File`
+        :rtype: :class:`canvasapi_async.file.File`
         """
         response = self._requester.request("DELETE", "files/{}".format(self.id))
         return ExampleMethods(self._requester, response.json())
@@ -105,7 +105,7 @@ class ExampleMethods(CanvasObject):
         :calls: `BELETE /api/v1/files/:id  \
         <https://canvas.instructure.com/doc/api/files.html#method.files.destroy>`_
 
-        :rtype: :class:`canvasapi.file.File`
+        :rtype: :class:`canvasapi_async.file.File`
         """
         response = self._requester.request("DELETE", "files/{}".format(self.id))
         return ExampleMethods(self._requester, response.json())
@@ -123,7 +123,7 @@ class ExampleMethods(CanvasObject):
         :calls: `DELETE /api/v1/files/:id  \
         <https://canvas.instructure.com/doc/api/files.html#method.files.destroy>`_
 
-        :rtype: :class:`canvasapi.file.File`
+        :rtype: :class:`canvasapi_async.file.File`
         """
         response = self._requester.request("DELETE", "files/{}".format(self.id))
         return ExampleMethods(self._requester, response.json())
@@ -136,9 +136,9 @@ class ExampleMethods(CanvasObject):
         <https://canvas.instructure.com/doc/api/files.html#method.folders.show>`_
 
         :param folder: The object or ID of the folder to retrieve.
-        :type folder: :class:`canvasapi.folder.Folder` or int
+        :type folder: :class:`canvasapi_async.folder.Folder` or int
 
-        :rtype: :class:`canvasapi.folder.Folder`
+        :rtype: :class:`canvasapi_async.folder.Folder`
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
@@ -185,7 +185,7 @@ class ExampleMethods(CanvasObject):
         :calls: `DELETE /api/v1/files/:id  \
         <https://canvas.instructure.com/doc/api/404.html>`_
 
-        :rtype: :class:`canvasapi.file.File`
+        :rtype: :class:`canvasapi_async.file.File`
         """
         response = self._requester.request("DELETE", "files/{}".format(self.id))
         return ExampleMethods(self._requester, response.json())
@@ -198,9 +198,9 @@ class ExampleMethods(CanvasObject):
         <https://canvas.instructure.com/doc/api/files.html>`_
 
         :param folder: The object or ID of the folder to retrieve.
-        :type folder: :class:`canvasapi.folder.Folder` or int
+        :type folder: :class:`canvasapi_async.folder.Folder` or int
 
-        :rtype: :class:`canvasapi.folder.Folder`
+        :rtype: :class:`canvasapi_async.folder.Folder`
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
@@ -215,9 +215,9 @@ class ExampleMethods(CanvasObject):
         <https://canvas.instructure.com/doc/api/files.html#invalid>`_
 
         :param folder: The object or ID of the folder to retrieve.
-        :type folder: :class:`canvasapi.folder.Folder` or int
+        :type folder: :class:`canvasapi_async.folder.Folder` or int
 
-        :rtype: :class:`canvasapi.folder.Folder`
+        :rtype: :class:`canvasapi_async.folder.Folder`
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
