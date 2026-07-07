@@ -3,9 +3,8 @@
 coverage run -m unittest discover
 coverage report
 coverage html
-black --check canvasapi_async tests
-isort --check canvasapi_async tests
-flake8 canvasapi_async tests
+ruff check canvasapi_async tests
+ruff format --check canvasapi_async tests
 mdl . .github
 python scripts/find_missing_modules.py
 python scripts/alphabetic.py

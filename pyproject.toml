@@ -32,11 +32,9 @@ Repository = "https://github.com/TShippen/canvasapi-async"
 
 [dependency-groups]
 test = [
-    "black",
     "coverage",
-    "flake8",
-    "isort",
     "requests-mock",
+    "ruff",
 ]
 docs = [
     "sphinx",
@@ -54,3 +52,18 @@ path = "canvasapi_async/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["canvasapi_async"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+# Default rules (pyflakes + a subset of pycodestyle) plus import sorting,
+# replacing the previous black + isort + flake8 toolchain.
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["canvasapi_async"]
+
+[tool.coverage.run]
+source = ["canvasapi_async"]
