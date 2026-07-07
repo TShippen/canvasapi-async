@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "canvasapi-async"
+dynamic = ["version"]
+description = "Async-focused fork of CanvasAPI, a Python API wrapper for the Canvas LMS."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Tristan Shippen", email = "tristan.shippen@gmail.com" }]
+dependencies = ["arrow", "pytz", "requests"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.urls]
+Homepage = "https://github.com/TShippen/canvasapi-async"
+Repository = "https://github.com/TShippen/canvasapi-async"
+
+[dependency-groups]
+test = [
+    "black",
+    "coverage",
+    "flake8",
+    "isort",
+    "requests-mock",
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinx-version-warning",
+]
+dev = [
+    { include-group = "test" },
+    { include-group = "docs" },
+    "pre-commit",
+]
+
+[tool.hatch.version]
+path = "canvasapi_async/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["canvasapi_async"]
