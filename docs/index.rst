@@ -6,6 +6,14 @@
 Welcome to CanvasAPI's documentation!
 ======================================
 
+.. warning::
+
+   This documentation is **frozen and unmaintained**. It describes the
+   synchronous API of the upstream `CanvasAPI
+   <https://github.com/ucfopen/canvasapi>`_ project (up to 3.6.0), from which
+   ``canvasapi-async`` was forked, and is no longer built or published. See
+   ``docs/FROZEN.md`` for details.
+
 Contents:
 
 .. toctree::
