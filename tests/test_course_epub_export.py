@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.course_epub_export import CourseEpubExport
+from canvasapi_async import Canvas
+from canvasapi_async.course_epub_export import CourseEpubExport
 from tests import settings
 
 

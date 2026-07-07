@@ -2,9 +2,9 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.progress import Progress
-from canvasapi.sis_import import SisImport
+from canvasapi_async import Canvas
+from canvasapi_async.progress import Progress
+from canvasapi_async.sis_import import SisImport
 from tests import settings
 from tests.util import register_uris
 

@@ -2,9 +2,9 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.eportfolio import EPortfolio, EPortfolioPage
-from canvasapi.paginated_list import PaginatedList
+from canvasapi_async import Canvas
+from canvasapi_async.eportfolio import EPortfolio, EPortfolioPage
+from canvasapi_async.paginated_list import PaginatedList
 from tests import settings
 from tests.util import register_uris
 

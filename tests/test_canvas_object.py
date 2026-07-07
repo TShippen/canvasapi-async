@@ -4,8 +4,8 @@ from datetime import datetime
 import pytz
 import requests_mock
 
-from canvasapi.canvas_object import CanvasObject
-from canvasapi.requester import Requester
+from canvasapi_async.canvas_object import CanvasObject
+from canvasapi_async.requester import Requester
 from tests import settings
 
 

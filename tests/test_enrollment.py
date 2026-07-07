@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi.canvas import Canvas
-from canvasapi.enrollment import Enrollment
+from canvasapi_async.canvas import Canvas
+from canvasapi_async.enrollment import Enrollment
 from tests import settings
 from tests.util import register_uris
 

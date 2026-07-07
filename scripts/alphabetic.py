@@ -5,13 +5,13 @@ import sys
 
 sys.path.append(os.path.join(sys.path[0], ".."))
 
-import canvasapi  # noqa
+import canvasapi_async  # noqa
 
 
 def main():
     error_count = 0
 
-    for _, module in inspect.getmembers(canvasapi, inspect.ismodule):
+    for _, module in inspect.getmembers(canvasapi_async, inspect.ismodule):
         # print(module.__name__)
         for class_name, theclass in inspect.getmembers(module, inspect.isclass):
             # Only process classes in this module

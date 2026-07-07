@@ -3,9 +3,9 @@ import uuid
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.file import File
-from canvasapi.folder import Folder
+from canvasapi_async import Canvas
+from canvasapi_async.file import File
+from canvasapi_async.folder import Folder
 from tests import settings
 from tests.util import cleanup_file, register_uris
 

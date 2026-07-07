@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.favorite import Favorite
+from canvasapi_async import Canvas
+from canvasapi_async.favorite import Favorite
 from tests import settings
 from tests.util import register_uris
 

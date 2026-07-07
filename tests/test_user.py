@@ -3,28 +3,28 @@ import uuid
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import Assignment
-from canvasapi.authentication_event import AuthenticationEvent
-from canvasapi.avatar import Avatar
-from canvasapi.calendar_event import CalendarEvent
-from canvasapi.communication_channel import CommunicationChannel
-from canvasapi.content_export import ContentExport
-from canvasapi.content_migration import ContentMigration, Migrator
-from canvasapi.course import Course
-from canvasapi.enrollment import Enrollment
-from canvasapi.eportfolio import EPortfolio
-from canvasapi.feature import Feature, FeatureFlag
-from canvasapi.file import File
-from canvasapi.folder import Folder
-from canvasapi.grade_change_log import GradeChangeEvent
-from canvasapi.license import License
-from canvasapi.login import Login
-from canvasapi.page_view import PageView
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.pairing_code import PairingCode
-from canvasapi.usage_rights import UsageRights
-from canvasapi.user import User
+from canvasapi_async import Canvas
+from canvasapi_async.assignment import Assignment
+from canvasapi_async.authentication_event import AuthenticationEvent
+from canvasapi_async.avatar import Avatar
+from canvasapi_async.calendar_event import CalendarEvent
+from canvasapi_async.communication_channel import CommunicationChannel
+from canvasapi_async.content_export import ContentExport
+from canvasapi_async.content_migration import ContentMigration, Migrator
+from canvasapi_async.course import Course
+from canvasapi_async.enrollment import Enrollment
+from canvasapi_async.eportfolio import EPortfolio
+from canvasapi_async.feature import Feature, FeatureFlag
+from canvasapi_async.file import File
+from canvasapi_async.folder import Folder
+from canvasapi_async.grade_change_log import GradeChangeEvent
+from canvasapi_async.license import License
+from canvasapi_async.login import Login
+from canvasapi_async.page_view import PageView
+from canvasapi_async.paginated_list import PaginatedList
+from canvasapi_async.pairing_code import PairingCode
+from canvasapi_async.usage_rights import UsageRights
+from canvasapi_async.user import User
 from tests import settings
 from tests.util import cleanup_file, register_uris
 
