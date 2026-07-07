@@ -20,6 +20,8 @@ venv/
 /htmlcov/
 \#*#
 .vscode/settings.json
+.idea/
+docs/superpowers/
 setup.sh
 .python-version
 .*.swp
