@@ -1,6 +1,0 @@
--r tests_requirements.txt
-
-pre-commit
-Sphinx~=8.2.3
-sphinx-rtd-theme
-sphinx-version-warning
