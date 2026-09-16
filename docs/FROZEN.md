@@ -16,7 +16,5 @@ What this means:
 - `docs/conf.py` still references the old import name and is intentionally left
   untouched; because the docs are no longer built, this does not matter.
 
-This freeze does **not** apply to `docs/superpowers/`, which holds active
-planning and design specs for this fork.
 
 Documentation will be revisited after the async rewrite.
