@@ -1,6 +1,6 @@
 #!/bin/sh
 
-coverage run -m unittest discover
+coverage run -m pytest
 coverage report
 coverage html
 ruff check canvasapi_async tests
