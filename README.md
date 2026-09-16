@@ -10,6 +10,19 @@ Canvas API rate limits.
 > the modernized synchronous foundation inherited from CanvasAPI 3.6.0; the
 > asynchronous rewrite is in progress.
 
+## Goals
+
+- **Asynchronous bulk fetching.** Materialize paginated results concurrently,
+  within a single list and across many, while respecting Canvas rate limits. The
+  existing synchronous object API stays in place.
+- **Full static typing.** The package will be statically typed. Annotations will be
+  added one module at a time. When a module is annotated, its docstrings drop the
+  `:type:` and `:rtype:` fields so the signature is the single source for types.
+- **Staying mergeable with upstream.** The resource modules are kept as close to
+  upstream CanvasAPI as possible so that future upstream releases can be merged.
+  Changes that alter behavior are confined to the request, pagination, and base
+  object layers.
+
 ## Attribution
 
 This project is a fork of [CanvasAPI](https://github.com/ucfopen/canvasapi) by the
