@@ -33,6 +33,8 @@ Repository = "https://github.com/TShippen/canvasapi-async"
 [dependency-groups]
 test = [
     "coverage",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
     "requests-mock",
     "ruff",
 ]
@@ -67,3 +69,6 @@ known-first-party = ["canvasapi_async"]
 
 [tool.coverage.run]
 source = ["canvasapi_async"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

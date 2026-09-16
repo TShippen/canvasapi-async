@@ -43,7 +43,7 @@ For local development (using [uv](https://docs.astral.sh/uv/)):
 
 ```
 uv sync
-uv run python -m unittest discover -s tests
+uv run pytest
 ```
 
 ## Documentation
