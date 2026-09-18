@@ -1,4 +1,5 @@
 import unittest
+from types import SimpleNamespace
 
 import requests_mock
 
@@ -338,3 +339,83 @@ class TestPaginatedList(unittest.TestCase):
         list(pag_list)
 
         self.assertEqual(m.request_history[0].qs["per_page"], ["100"])
+
+    # _next_link_from()
+    def test_next_link_from_link_header(self, m):
+        pag_list = PaginatedList(User, self.requester, "GET", "single_item")
+        response = SimpleNamespace(
+            links={"next": {"url": "https://example.com/api/v1/x?page=2"}}
+        )
+
+        self.assertEqual(
+            pag_list._next_link_from(response, []),
+            "https://example.com/api/v1/x?page=2",
+        )
+
+    def test_next_link_from_meta_pagination(self, m):
+        pag_list = PaginatedList(User, self.requester, "GET", "single_item")
+        response = SimpleNamespace(links={})
+
+        self.assertEqual(
+            pag_list._next_link_from(response, {"meta": {"pagination": {"next": "u"}}}),
+            "u",
+        )
+
+    def test_next_link_from_missing(self, m):
+        pag_list = PaginatedList(User, self.requester, "GET", "single_item")
+        response = SimpleNamespace(links={})
+
+        self.assertIsNone(
+            pag_list._next_link_from(response, {"meta": {"pagination": {"prev": "p"}}})
+        )
+
+    def test_next_link_from_null_meta_next(self, m):
+        # A present-but-null `next` key ends pagination rather than reaching
+        # the regex, which cannot take None.
+        pag_list = PaginatedList(User, self.requester, "GET", "single_item")
+        response = SimpleNamespace(links={})
+
+        self.assertIsNone(
+            pag_list._next_link_from(response, {"meta": {"pagination": {"next": None}}})
+        )
+
+    # _strip_base()
+    def test_strip_base_api_url(self, m):
+        pag_list = PaginatedList(User, self.requester, "GET", "single_item")
+
+        self.assertEqual(
+            pag_list._strip_base("https://example.com/api/v1/courses?page=2"),
+            "courses?page=2",
+        )
+
+    def test_strip_base_new_quizzes_url(self, m):
+        pag_list = PaginatedList(User, self.requester, "GET", "single_item")
+
+        self.assertEqual(
+            pag_list._strip_base("https://example.com/api/quiz/v1/q?page=2"),
+            "q?page=2",
+        )
+
+    # _records_from()
+    def test_records_from_skips_none_and_merges_extra_attribs(self, m):
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "single_item",
+            extra_attribs={"course_id": 1},
+        )
+
+        content = pag_list._records_from([{"id": 1}, None])
+
+        self.assertEqual(len(content), 1)
+        self.assertIsInstance(content[0], User)
+        self.assertEqual(content[0].course_id, 1)
+
+    def test_records_from_root_missing_raises(self, m):
+        pag_list = PaginatedList(
+            User, self.requester, "GET", "single_item", _root="wrong"
+        )
+
+        with self.assertRaises(ValueError):
+            pag_list._records_from({"other": []})

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable, Iterator, Type, TypeVar
+from typing import Any, Iterable, Iterator, Type, TypeVar
 
 T = TypeVar("T")
 
@@ -97,6 +97,33 @@ class PaginatedList(Iterable[T]):
         )
         data = response.json()
         self._next_url = None
+
+        next_url = self._next_link_from(response, data)
+        self._next_url = self._strip_base(next_url) if next_url else None
+
+        self._next_params = {}
+
+        return self._records_from(data)
+
+    def _get_up_to_index(self, index):
+        while len(self._elements) <= index and self._has_next():
+            self._grow()
+
+    def _grow(self):
+        new_elements = self._get_next_page()
+        self._elements += new_elements
+        return new_elements
+
+    def _has_next(self):
+        return self._next_url is not None
+
+    def _is_larger_than(self, index):
+        return len(self._elements) > index or self._has_next()
+
+    def _next_link_from(self, response: Any, data: Any) -> str | None:
+        """
+        Find the URL of the next page in a response's headers or its body.
+        """
         # Check the response headers first. This is the normal Canvas convention
         # for pagination, but there are endpoints which return a `meta` property
         # for pagination instead.
@@ -113,17 +140,12 @@ class PaginatedList(Iterable[T]):
         else:
             next_link = None
 
-        regex = r"(?:{}|{})(.*)".format(
-            re.escape(self._requester.base_url),
-            re.escape(self._requester.new_quizzes_url),
-        )
+        return next_link["url"] if next_link else None
 
-        self._next_url = (
-            re.search(regex, next_link["url"]).group(1) if next_link else None
-        )
-
-        self._next_params = {}
-
+    def _records_from(self, data: Any) -> list[T]:
+        """
+        Build content objects from a page of response data.
+        """
         content = []
 
         if self._root:
@@ -141,20 +163,16 @@ class PaginatedList(Iterable[T]):
 
         return content
 
-    def _get_up_to_index(self, index):
-        while len(self._elements) <= index and self._has_next():
-            self._grow()
+    def _strip_base(self, url: str) -> str:
+        """
+        Strip the requester's base or new-quizzes URL off the front of a URL.
+        """
+        regex = r"(?:{}|{})(.*)".format(
+            re.escape(self._requester.base_url),
+            re.escape(self._requester.new_quizzes_url),
+        )
 
-    def _grow(self):
-        new_elements = self._get_next_page()
-        self._elements += new_elements
-        return new_elements
-
-    def _has_next(self):
-        return self._next_url is not None
-
-    def _is_larger_than(self, index):
-        return len(self._elements) > index or self._has_next()
+        return re.search(regex, url).group(1)
 
     class _Slice(object):
         def __init__(self, the_list, the_slice):
