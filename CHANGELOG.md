@@ -7,6 +7,14 @@ upstream project, up to the point of the fork (version 3.6.0), is preserved in
 
 ## [Unreleased]
 
+### Bugfixes
+
+- Fixed an issue where kwargs were not passed along to Canvas at nineteen
+  `PaginatedList` and `request` call sites across the resource modules
+  (issue #685, PR #686. Thanks, [@superle3](https://github.com/superle3)).
+- Fixed the same issue at `Blueprint.show_blueprint_migration`, which was
+  not part of upstream PR #686.
+
 ## [0.1.0]
 
 Initial release of the fork. This establishes a clean, modernized foundation;
