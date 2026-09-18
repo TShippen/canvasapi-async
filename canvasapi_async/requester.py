@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from pprint import pformat
+from typing import Any
 
 import requests
 
@@ -41,6 +42,26 @@ class Requester(object):
         self._session = requests.Session()
         self._cache = []
 
+    def _build_headers(
+        self, headers: dict[str, str] | None, use_auth: bool
+    ) -> dict[str, str]:
+        """
+        Build the headers for a request, adding authentication and a user agent.
+        """
+        from canvasapi_async import __version__
+
+        if not headers:
+            headers = {}
+
+        if use_auth:
+            auth_header = {"Authorization": "Bearer {}".format(self.access_token)}
+            headers.update(auth_header)
+
+        if "User-Agent" not in headers:
+            headers["User-Agent"] = f"python-canvasapi_async/{__version__}"
+
+        return headers
+
     def _delete_request(self, url, headers, data=None, **kwargs):
         """
         Issue a DELETE request to the specified endpoint with the data provided.
@@ -66,6 +87,77 @@ class Requester(object):
         :type params: dict
         """
         return self._session.get(url, headers=headers, params=params)
+
+    def _log_request(
+        self,
+        method: str,
+        full_url: str,
+        headers: dict[str, str],
+        params: list[tuple[str, Any]],
+        json: Any,
+    ) -> None:
+        """
+        Log an outgoing request, its headers, and any data it carries.
+        """
+        logger.info("Request: {method} {url}".format(method=method, url=full_url))
+        logger.debug(
+            "Headers: {headers}".format(headers=pformat(clean_headers(headers)))
+        )
+
+        if params:
+            logger.debug("Data: {data}".format(data=pformat(params)))
+
+        if json:
+            logger.debug("JSON: {json}".format(json=pformat(json)))
+
+    def _log_response(self, method: str, full_url: str, response: Any) -> None:
+        """
+        Log a response's status, headers, and body.
+        """
+        logger.info(
+            "Response: {method} {url} {status}".format(
+                method=method, url=full_url, status=response.status_code
+            )
+        )
+        logger.debug(
+            "Headers: {headers}".format(
+                headers=pformat(clean_headers(response.headers))
+            )
+        )
+
+        try:
+            logger.debug(
+                "Data: {data}".format(data=pformat(response.content.decode("utf-8")))
+            )
+        except UnicodeDecodeError:
+            logger.debug("Data: {data}".format(data=pformat(response.content)))
+        except AttributeError:
+            # response.content is None
+            logger.debug("No data")
+
+    def _normalize_params(
+        self, _kwargs: list[tuple[str, Any]] | None, kwargs: dict[str, Any]
+    ) -> list[tuple[str, Any]]:
+        """
+        Merge keyword arguments into the 2-tuple list and normalize their values.
+        """
+        # Convert kwargs into list of 2-tuples and combine with _kwargs.
+        _kwargs = _kwargs or []
+        _kwargs.extend(kwargs.items())
+
+        # Do any final argument processing before sending to request method.
+        for i, kwarg in enumerate(_kwargs):
+            kw, arg = kwarg
+
+            # Convert boolean objects to a lowercase string.
+            if isinstance(arg, bool):
+                _kwargs[i] = (kw, str(arg).lower())
+
+            # Convert any datetime objects into ISO 8601 formatted strings.
+            elif isinstance(arg, datetime):
+                _kwargs[i] = (kw, arg.isoformat())
+
+        return _kwargs
 
     def _patch_request(self, url, headers, data=None, **kwargs):
         """
@@ -124,6 +216,65 @@ class Requester(object):
         """
         return self._session.put(url, headers=headers, data=data)
 
+    def _raise_for_status(self, response: Any) -> None:
+        """
+        Raise the exception that corresponds to an error status code.
+        """
+        # Raise for status codes
+        if response.status_code == 400:
+            raise BadRequest(response.text)
+        elif response.status_code == 401:
+            if "WWW-Authenticate" in response.headers:
+                raise InvalidAccessToken(response.json())
+            else:
+                raise Unauthorized(response.json())
+        elif response.status_code == 403:
+            raise Forbidden(response.text)
+        elif response.status_code == 404:
+            raise ResourceDoesNotExist("Not Found")
+        elif response.status_code == 409:
+            raise Conflict(response.text)
+        elif response.status_code == 422:
+            raise UnprocessableEntity(response.text)
+        elif response.status_code == 429:
+            raise RateLimitExceeded(
+                "Rate Limit Exceeded. X-Rate-Limit-Remaining: {}".format(
+                    response.headers.get("X-Rate-Limit-Remaining", "Unknown")
+                )
+            )
+        elif response.status_code > 400:
+            # generic catch-all for error codes
+            raise CanvasException(
+                "Encountered an error: status code {}".format(response.status_code)
+            )
+
+    def _remember(self, response: Any) -> None:
+        """
+        Store a response in the internal cache of recent responses.
+        """
+        # Add response to internal cache
+        if len(self._cache) > 4:
+            self._cache.pop()
+
+        self._cache.insert(0, response)
+
+    def _resolve_url(self, endpoint: str | None, _url: str | None) -> str:
+        """
+        Resolve an endpoint and URL selector into the full URL to request.
+        """
+        # Check for specific URL endpoints available from Canvas. If not
+        # specified, pass the given URL and move on.
+        if not _url:
+            full_url = "{}{}".format(self.base_url, endpoint)
+        elif _url == "new_quizzes":
+            full_url = "{}{}".format(self.new_quizzes_url, endpoint)
+        elif _url == "graphql":
+            full_url = self.graphql
+        else:
+            full_url = _url
+
+        return full_url
+
     def request(
         self,
         method,
@@ -167,44 +318,9 @@ class Requester(object):
         :type json: `bool`
         :rtype: :class:`requests.Response`
         """
-        from canvasapi_async import __version__
-
-        # Check for specific URL endpoints available from Canvas. If not
-        # specified, pass the given URL and move on.
-        if not _url:
-            full_url = "{}{}".format(self.base_url, endpoint)
-        elif _url == "new_quizzes":
-            full_url = "{}{}".format(self.new_quizzes_url, endpoint)
-        elif _url == "graphql":
-            full_url = self.graphql
-        else:
-            full_url = _url
-
-        if not headers:
-            headers = {}
-
-        if use_auth:
-            auth_header = {"Authorization": "Bearer {}".format(self.access_token)}
-            headers.update(auth_header)
-
-        if "User-Agent" not in headers:
-            headers["User-Agent"] = f"python-canvasapi_async/{__version__}"
-
-        # Convert kwargs into list of 2-tuples and combine with _kwargs.
-        _kwargs = _kwargs or []
-        _kwargs.extend(kwargs.items())
-
-        # Do any final argument processing before sending to request method.
-        for i, kwarg in enumerate(_kwargs):
-            kw, arg = kwarg
-
-            # Convert boolean objects to a lowercase string.
-            if isinstance(arg, bool):
-                _kwargs[i] = (kw, str(arg).lower())
-
-            # Convert any datetime objects into ISO 8601 formatted strings.
-            elif isinstance(arg, datetime):
-                _kwargs[i] = (kw, arg.isoformat())
+        full_url = self._resolve_url(endpoint, _url)
+        headers = self._build_headers(headers, use_auth)
+        _kwargs = self._normalize_params(_kwargs, kwargs)
 
         # Determine the appropriate request method.
         if method == "GET":
@@ -219,71 +335,12 @@ class Requester(object):
             req_method = self._patch_request
 
         # Call the request method
-        logger.info("Request: {method} {url}".format(method=method, url=full_url))
-        logger.debug(
-            "Headers: {headers}".format(headers=pformat(clean_headers(headers)))
-        )
-
-        if _kwargs:
-            logger.debug("Data: {data}".format(data=pformat(_kwargs)))
-
-        if json:
-            logger.debug("JSON: {json}".format(json=pformat(json)))
+        self._log_request(method, full_url, headers, _kwargs, json)
 
         response = req_method(full_url, headers, _kwargs, json=json)
-        logger.info(
-            "Response: {method} {url} {status}".format(
-                method=method, url=full_url, status=response.status_code
-            )
-        )
-        logger.debug(
-            "Headers: {headers}".format(
-                headers=pformat(clean_headers(response.headers))
-            )
-        )
+        self._log_response(method, full_url, response)
 
-        try:
-            logger.debug(
-                "Data: {data}".format(data=pformat(response.content.decode("utf-8")))
-            )
-        except UnicodeDecodeError:
-            logger.debug("Data: {data}".format(data=pformat(response.content)))
-        except AttributeError:
-            # response.content is None
-            logger.debug("No data")
-
-        # Add response to internal cache
-        if len(self._cache) > 4:
-            self._cache.pop()
-
-        self._cache.insert(0, response)
-
-        # Raise for status codes
-        if response.status_code == 400:
-            raise BadRequest(response.text)
-        elif response.status_code == 401:
-            if "WWW-Authenticate" in response.headers:
-                raise InvalidAccessToken(response.json())
-            else:
-                raise Unauthorized(response.json())
-        elif response.status_code == 403:
-            raise Forbidden(response.text)
-        elif response.status_code == 404:
-            raise ResourceDoesNotExist("Not Found")
-        elif response.status_code == 409:
-            raise Conflict(response.text)
-        elif response.status_code == 422:
-            raise UnprocessableEntity(response.text)
-        elif response.status_code == 429:
-            raise RateLimitExceeded(
-                "Rate Limit Exceeded. X-Rate-Limit-Remaining: {}".format(
-                    response.headers.get("X-Rate-Limit-Remaining", "Unknown")
-                )
-            )
-        elif response.status_code > 400:
-            # generic catch-all for error codes
-            raise CanvasException(
-                "Encountered an error: status code {}".format(response.status_code)
-            )
+        self._remember(response)
+        self._raise_for_status(response)
 
         return response
