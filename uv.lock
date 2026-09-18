@@ -112,6 +112,7 @@ wheels = [
 name = "canvasapi-async"
 source = { editable = "." }
 dependencies = [
+    { name = "anyio" },
     { name = "arrow" },
     { name = "httpx" },
     { name = "pytz" },
@@ -141,6 +142,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anyio", specifier = ">=4.15.1" },
     { name = "arrow" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pytz" },

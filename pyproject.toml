@@ -12,6 +12,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Tristan Shippen", email = "tristan.shippen@gmail.com" }]
 dependencies = [
+    "anyio>=4.15.1",
     "arrow",
     "httpx>=0.28.1",
     "pytz",
