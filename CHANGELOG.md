@@ -14,6 +14,12 @@ upstream project, up to the point of the fork (version 3.6.0), is preserved in
   (issue #685, PR #686. Thanks, [@superle3](https://github.com/superle3)).
 - Fixed the same issue at `Blueprint.show_blueprint_migration`, which was
   not part of upstream PR #686.
+- Fixed `PaginatedList` overriding a caller's `per_page`, which sent the
+  parameter twice on the first request. `PaginatedList` now accepts `_kwargs`
+  and only defaults `per_page` to 100 when the caller supplied no value
+  (issue #685, PR #686. Thanks, [@superle3](https://github.com/superle3)). The
+  PR's `docs/getting-started.rst` change was not applied, because the local
+  Sphinx tree is frozen.
 
 ## [0.1.0]
 
