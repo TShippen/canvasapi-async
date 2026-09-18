@@ -11,7 +11,12 @@ requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Tristan Shippen", email = "tristan.shippen@gmail.com" }]
-dependencies = ["arrow", "pytz", "requests"]
+dependencies = [
+    "arrow",
+    "httpx>=0.28.1",
+    "pytz",
+    "requests",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -33,9 +38,11 @@ Repository = "https://github.com/TShippen/canvasapi-async"
 [dependency-groups]
 test = [
     "coverage",
+    "mypy>=2.3.1",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "requests-mock",
+    "respx>=0.23.1",
     "ruff",
 ]
 dev = [
@@ -62,8 +69,16 @@ extend-select = ["ASYNC", "I"]
 [tool.ruff.lint.isort]
 known-first-party = ["canvasapi_async"]
 
+[tool.mypy]
+strict = true
+# Modules are checked one at a time by path. Silent following still type-checks
+# the imported inherited modules but reports no errors in them, so a run against
+# a single annotated module is not buried under the unannotated package.
+follow_imports = "silent"
+
 [tool.coverage.run]
 source = ["canvasapi_async"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "function"
