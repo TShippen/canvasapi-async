@@ -95,6 +95,15 @@ class TestBlueprint(unittest.TestCase):
         self.assertEqual(blueprint_migration.workflow_state, "completed")
         self.assertEqual(blueprint_migration.template_id, 1)
 
+    def test_show_blueprint_migration_sends_kwargs_as_params(self, m):
+        register_uris({"blueprint": ["show_blueprint_migration"]}, m)
+
+        self.blueprint.show_blueprint_migration(1, comment="test")
+
+        self.assertIn("comment", m.last_request.qs)
+        self.assertEqual(m.last_request.qs["comment"], ["test"])
+        self.assertNotIn("kwargs", m.last_request.qs)
+
 
 @requests_mock.Mocker()
 class TestBlueprintSubscription(unittest.TestCase):

@@ -1751,6 +1751,16 @@ class TestCourse(unittest.TestCase):
         self.assertEqual(response[0].title, "Grading period 1")
         self.assertEqual(response[1].title, "Grading period 2")
 
+    def test_get_grading_periods_sends_kwargs_as_params(self, m):
+        register_uris({"course": ["get_grading_periods"]}, m)
+
+        response = self.course.get_grading_periods(include=["total_scores"])
+        list(response)
+
+        self.assertIn("include[]", m.last_request.qs)
+        self.assertEqual(m.last_request.qs["include[]"], ["total_scores"])
+        self.assertNotIn("kwargs", m.last_request.qs)
+
     # get_grade_change_events()
     def test_get_grade_change_events(self, m):
         register_uris({"course": ["get_grade_change_events"]}, m)
