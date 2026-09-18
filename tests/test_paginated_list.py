@@ -6,6 +6,7 @@ from canvasapi_async import Canvas
 from canvasapi_async.enrollment_term import EnrollmentTerm
 from canvasapi_async.paginated_list import PaginatedList
 from canvasapi_async.user import User
+from canvasapi_async.util import combine_kwargs
 from tests import settings
 from tests.util import register_uris
 
@@ -43,7 +44,9 @@ class TestPaginatedList(unittest.TestCase):
     def test_paginated_list_four_two_pages(self, m):
         register_uris({"paginated_list": ["4_2_pages_p1", "4_2_pages_p2"]}, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "four_objects_two_pages")
+        pag_list = PaginatedList(
+            User, self.requester, "GET", "four_objects_two_pages", per_page=2
+        )
         item_list = [item for item in pag_list]
         self.assertEqual(len(item_list), 4)
         self.assertIsInstance(item_list[0], User)
@@ -52,7 +55,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["6_3_pages_p1", "6_3_pages_p2", "6_3_pages_p3"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "six_objects_three_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "six_objects_three_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         item_list = [item for item in pag_list]
         self.assertEqual(len(item_list), 6)
         self.assertIsInstance(item_list[0], User)
@@ -62,7 +71,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["6_3_pages_p1", "6_3_pages_p2", "6_3_pages_p3"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "six_objects_three_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "six_objects_three_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         list_1 = [item for item in pag_list]
         list_2 = [item for item in pag_list]
         self.assertEqual(list_1, list_2)
@@ -72,7 +87,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["6_3_pages_p1", "6_3_pages_p2", "6_3_pages_p3"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "six_objects_three_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "six_objects_three_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         first_item = pag_list[0]
         self.assertIsInstance(first_item, User)
 
@@ -80,7 +101,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["6_3_pages_p1", "6_3_pages_p2", "6_3_pages_p3"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "six_objects_three_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "six_objects_three_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         third_item = pag_list[2]
         self.assertIsInstance(third_item, User)
 
@@ -89,7 +116,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["6_3_pages_p1", "6_3_pages_p2", "6_3_pages_p3"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "six_objects_three_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "six_objects_three_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         first_two_items = pag_list[:2]
         item_list = [item for item in first_two_items]
         self.assertEqual(len(item_list), 2)
@@ -101,7 +134,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["6_3_pages_p1", "6_3_pages_p2", "6_3_pages_p3"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "six_objects_three_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "six_objects_three_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         middle_two_items = pag_list[2:4]
         item_list = [item for item in middle_two_items]
         self.assertEqual(len(item_list), 2)
@@ -113,7 +152,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["6_3_pages_p1", "6_3_pages_p2", "6_3_pages_p3"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "six_objects_three_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "six_objects_three_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         middle_two_items = pag_list[4:6]
         item_list = [item for item in middle_two_items]
         self.assertEqual(len(item_list), 2)
@@ -125,7 +170,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["4_2_pages_p1", "4_2_pages_p2"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "four_objects_two_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "four_objects_two_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         oversized_slice = pag_list[0:10]
         item_list = [item for item in oversized_slice]
         self.assertEqual(len(item_list), 4)
@@ -134,7 +185,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["4_2_pages_p1", "4_2_pages_p2"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "four_objects_two_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "four_objects_two_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         out_of_bounds = pag_list[4:5]
         item_list = [item for item in out_of_bounds]
         self.assertEqual(len(item_list), 0)
@@ -144,7 +201,13 @@ class TestPaginatedList(unittest.TestCase):
         requires = {"paginated_list": ["6_3_pages_p1", "6_3_pages_p2", "6_3_pages_p3"]}
         register_uris(requires, m)
 
-        pag_list = PaginatedList(User, self.requester, "GET", "six_objects_three_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "six_objects_three_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         self.assertEqual(pag_list.__repr__(), "<PaginatedList of type User>")
 
     def test_root_element_incorrect(self, m):
@@ -178,7 +241,13 @@ class TestPaginatedList(unittest.TestCase):
         # Ensure that we can't use negative indexing, even after loading a page
 
         register_uris({"paginated_list": ["4_2_pages_p1", "4_2_pages_p2"]}, m)
-        pag_list = PaginatedList(User, self.requester, "GET", "four_objects_two_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "four_objects_two_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         pag_list[0]
 
         with self.assertRaises(IndexError):
@@ -189,7 +258,13 @@ class TestPaginatedList(unittest.TestCase):
         # Ensure that we can't slice using a negative index as the start item
 
         register_uris({"paginated_list": ["4_2_pages_p1", "4_2_pages_p2"]}, m)
-        pag_list = PaginatedList(User, self.requester, "GET", "four_objects_two_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "four_objects_two_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         pag_list[0]
 
         with self.assertRaises(IndexError):
@@ -200,7 +275,13 @@ class TestPaginatedList(unittest.TestCase):
         # Ensure that we can't slice using a negative index as the end item
 
         register_uris({"paginated_list": ["4_2_pages_p1", "4_2_pages_p2"]}, m)
-        pag_list = PaginatedList(User, self.requester, "GET", "four_objects_two_pages")
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "four_objects_two_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
         pag_list[0]
 
         with self.assertRaises(IndexError):
@@ -217,6 +298,7 @@ class TestPaginatedList(unittest.TestCase):
             "GET",
             "no_header_four_objects_two_pages",
             _root="assessments",
+            _kwargs=combine_kwargs(per_page=2),
         )
 
         self.assertIsInstance(pag_list, PaginatedList)
@@ -233,3 +315,26 @@ class TestPaginatedList(unittest.TestCase):
         self.assertIsInstance(pag_list, PaginatedList)
         self.assertEqual(len(list(pag_list)), 2)
         self.assertIsInstance(pag_list[0], User)
+
+    # per_page
+    def test_per_page_in_kwargs_is_not_overridden(self, m):
+        register_uris({"paginated_list": ["4_2_pages_p1", "4_2_pages_p2"]}, m)
+
+        pag_list = PaginatedList(
+            User,
+            self.requester,
+            "GET",
+            "four_objects_two_pages",
+            _kwargs=combine_kwargs(per_page=2),
+        )
+        list(pag_list)
+
+        self.assertEqual(m.request_history[0].qs["per_page"], ["2"])
+
+    def test_per_page_defaults_to_100(self, m):
+        register_uris({"paginated_list": ["single"]}, m)
+
+        pag_list = PaginatedList(User, self.requester, "GET", "single_item")
+        list(pag_list)
+
+        self.assertEqual(m.request_history[0].qs["per_page"], ["100"])
