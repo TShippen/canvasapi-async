@@ -210,3 +210,49 @@ class TestRequester(unittest.TestCase):
 
         with self.assertRaises(CanvasException):
             self.requester.request("GET", "absurd")
+
+    # _resolve_url()
+    def test_resolve_url_default(self, m):
+        self.assertEqual(
+            self.requester._resolve_url("courses", None),
+            settings.BASE_URL_WITH_VERSION + "courses",
+        )
+
+    def test_resolve_url_new_quizzes(self, m):
+        self.assertEqual(
+            self.requester._resolve_url("courses", "new_quizzes"),
+            settings.BASE_URL_NEW_QUIZZES + "courses",
+        )
+
+    def test_resolve_url_graphql(self, m):
+        self.assertEqual(
+            self.requester._resolve_url("courses", "graphql"),
+            settings.BASE_URL_GRAPHQL + "graphql",
+        )
+
+    def test_resolve_url_absolute(self, m):
+        self.assertEqual(
+            self.requester._resolve_url("courses", "https://other.example/x"),
+            "https://other.example/x",
+        )
+
+    # _build_headers()
+    def test_build_headers_adds_auth_and_user_agent(self, m):
+        headers = self.requester._build_headers(None, True)
+
+        self.assertEqual(headers["Authorization"], "Bearer {}".format(settings.API_KEY))
+        self.assertTrue(headers["User-Agent"].startswith("python-canvasapi_async/"))
+
+    def test_build_headers_without_auth_keeps_custom_user_agent(self, m):
+        headers = self.requester._build_headers({"User-Agent": "x"}, False)
+
+        self.assertNotIn("Authorization", headers)
+        self.assertEqual(headers["User-Agent"], "x")
+
+    # _normalize_params()
+    def test_normalize_params_lowercases_booleans_and_isoformats_datetimes(self, m):
+        params = self.requester._normalize_params(
+            [("a", True)], {"b": datetime(2020, 1, 2)}
+        )
+
+        self.assertEqual(params, [("a", "true"), ("b", "2020-01-02T00:00:00")])
