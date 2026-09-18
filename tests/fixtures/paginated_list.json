@@ -175,5 +175,27 @@
 			}
 		}
 	},
+	"no_header_empty_next": {
+		"method": "ANY",
+		"endpoint": "no_header_empty_next",
+		"data": {
+			"assessments": [
+				{
+					"id": "1",
+					"name": "object 1"
+				},
+				{
+					"id": "2",
+					"name": "object 2"
+				}
+			],
+			"meta": {
+				"pagination": {
+					"next": ""
+				}
+			}
+		},
+		"status_code": 200
+	},
 	"status_code": 200
 }
