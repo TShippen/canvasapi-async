@@ -317,6 +317,16 @@ class TestPaginatedList(unittest.TestCase):
         self.assertEqual(len(list(pag_list)), 2)
         self.assertIsInstance(pag_list[0], User)
 
+    def test_empty_next_url_ends_pagination(self, m):
+        register_uris({"paginated_list": ["no_header_empty_next"]}, m)
+
+        pag_list = PaginatedList(
+            User, self.requester, "GET", "no_header_empty_next", _root="assessments"
+        )
+
+        self.assertEqual(len(list(pag_list)), 2)
+        self.assertEqual(len(m.request_history), 1)
+
     # per_page
     def test_per_page_in_kwargs_is_not_overridden(self, m):
         register_uris({"paginated_list": ["4_2_pages_p1", "4_2_pages_p2"]}, m)
@@ -378,6 +388,15 @@ class TestPaginatedList(unittest.TestCase):
         self.assertIsNone(
             pag_list._next_link_from(response, {"meta": {"pagination": {"next": None}}})
         )
+
+    def test_next_link_from_empty_url_passes_it_through(self, m):
+        # An empty URL comes back unchanged rather than as None, because the
+        # link dict itself is truthy. Pagination stops at the caller's
+        # `if next_url` guard, not here.
+        pag_list = PaginatedList(User, self.requester, "GET", "single_item")
+        response = SimpleNamespace(links={"next": {"url": ""}})
+
+        self.assertEqual(pag_list._next_link_from(response, []), "")
 
     # _strip_base()
     def test_strip_base_api_url(self, m):
