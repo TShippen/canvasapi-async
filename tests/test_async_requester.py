@@ -56,6 +56,12 @@ FORM_BODY_METHODS = ["POST", "PUT", "PATCH", "DELETE"]
 # parameters at all, paired with the method.
 EMPTY_PARAMETER_CASES = [("POST", "0"), ("PUT", "0"), ("PATCH", "0"), ("DELETE", None)]
 
+# Response headers that report no quota a cooldown could be decided from.
+UNUSABLE_QUOTA_HEADERS = [
+    pytest.param({}, id="absent_header"),
+    pytest.param({"X-Rate-Limit-Remaining": "abc"}, id="unparsable_header"),
+]
+
 
 def make_test_requester(**kwargs: Any) -> AsyncRequester:
     """Build a requester pointed at the fake Canvas instance."""
@@ -261,6 +267,111 @@ async def test_quota_floor_clears_when_remaining_recovers(
         elapsed = time.monotonic() - started
 
     assert elapsed < 0.15
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("headers", UNUSABLE_QUOTA_HEADERS)
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_unusable_quota_keeps_the_pause(
+    respx_mock: respx.MockRouter,
+    monkeypatch: pytest.MonkeyPatch,
+    headers: dict[str, str],
+) -> None:
+    monkeypatch.setattr(async_requester, "QUOTA_COOLDOWN_SECONDS", 0.3)
+
+    async def answer_without_a_quota(request: httpx.Request) -> httpx.Response:
+        await anyio.sleep(0.05)
+        return httpx.Response(200, headers=headers, json=[])
+
+    async def report_low_quota(request: httpx.Request) -> httpx.Response:
+        await anyio.sleep(0.01)
+        return httpx.Response(200, headers={"X-Rate-Limit-Remaining": "10"}, json=[])
+
+    respx_mock.get("silent").mock(side_effect=answer_without_a_quota)
+    respx_mock.get("low").mock(side_effect=report_low_quota)
+    respx_mock.get("courses").mock(return_value=httpx.Response(200, json=[]))
+
+    async with make_test_requester(quota_floor=150) as requester:
+        # The staggered sleeps land the quota-less response after the low
+        # quota's, so the cooldown is still running when it arrives.
+        await asyncio.gather(
+            requester.request_async("GET", "silent"),
+            requester.request_async("GET", "low"),
+        )
+        started = time.monotonic()
+        await requester.request_async("GET", "courses")
+        elapsed = time.monotonic() - started
+
+    assert elapsed >= 0.15
+
+
+@pytest.mark.asyncio
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_pause_holds_requests_queued_for_a_permit(
+    respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(async_requester, "QUOTA_COOLDOWN_SECONDS", 0.2)
+    send_times: list[float] = []
+    remaining = iter(["10"])
+
+    async def report_low_quota_once(request: httpx.Request) -> httpx.Response:
+        send_times.append(time.monotonic())
+        quota = next(remaining, None)
+        if quota is None:
+            return httpx.Response(200, json=[])
+
+        return httpx.Response(200, headers={"X-Rate-Limit-Remaining": quota}, json=[])
+
+    respx_mock.get("courses").mock(side_effect=report_low_quota_once)
+
+    async with make_test_requester(concurrency=1, quota_floor=150) as requester:
+        await asyncio.gather(
+            *(requester.request_async("GET", "courses") for _ in range(3))
+        )
+
+    assert len(send_times) == 3
+    assert min(send_times[1:]) - send_times[0] >= 0.15
+
+
+@pytest.mark.asyncio
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_a_pause_extended_while_a_request_waits_holds_it_longer(
+    respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(async_requester, "QUOTA_COOLDOWN_SECONDS", 0.2)
+    extended_at = 0.0
+    sent_at = 0.0
+
+    async def report_low_quota(request: httpx.Request) -> httpx.Response:
+        await anyio.sleep(0.01)
+        return httpx.Response(200, headers={"X-Rate-Limit-Remaining": "10"}, json=[])
+
+    async def extend_the_pause(request: httpx.Request) -> httpx.Response:
+        nonlocal extended_at
+        await anyio.sleep(0.15)
+        extended_at = time.monotonic()
+        return httpx.Response(200, headers={"X-Rate-Limit-Remaining": "10"}, json=[])
+
+    async def record_the_send(request: httpx.Request) -> httpx.Response:
+        nonlocal sent_at
+        sent_at = time.monotonic()
+        return httpx.Response(200, json=[])
+
+    respx_mock.get("low").mock(side_effect=report_low_quota)
+    respx_mock.get("later").mock(side_effect=extend_the_pause)
+    respx_mock.get("courses").mock(side_effect=record_the_send)
+
+    # The two permits are taken by the requests that report a low quota, so the
+    # third waits for a permit, then waits out the cooldown the first starts
+    # while the second is still in flight to push it back.
+    async with make_test_requester(concurrency=2, quota_floor=150) as requester:
+        await asyncio.gather(
+            requester.request_async("GET", "low"),
+            requester.request_async("GET", "later"),
+            requester.request_async("GET", "courses"),
+        )
+
+    assert sent_at - extended_at >= 0.15
 
 
 @pytest.mark.asyncio

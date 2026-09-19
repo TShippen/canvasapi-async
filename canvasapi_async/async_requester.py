@@ -131,8 +131,8 @@ class AsyncRequester(Requester):
         Note what a response reports about the remaining rate limit quota.
 
         A quota below the floor starts a cooldown that later requests wait
-        out. Anything at or above the floor clears it, and a quota that does
-        not parse leaves it as it was.
+        out. Only a quota at or above the floor clears it; a quota that is
+        absent or does not parse leaves it as it was.
 
         :param response: The response whose rate limit headers to read.
         """
@@ -141,23 +141,25 @@ class AsyncRequester(Requester):
             logger.debug("Request cost: %s", cost)
 
         remaining = response.headers.get("X-Rate-Limit-Remaining")
-        if remaining is not None:
-            try:
-                quota = float(remaining)
-            except ValueError:
-                logger.warning(
-                    "Ignoring unparsable X-Rate-Limit-Remaining header: %s", remaining
-                )
-                return
+        if remaining is None:
+            return
 
-            if quota < self.quota_floor:
-                logger.warning(
-                    "Rate limit quota down to %s; pausing requests for %s seconds",
-                    remaining,
-                    QUOTA_COOLDOWN_SECONDS,
-                )
-                self._resume_at = time.monotonic() + QUOTA_COOLDOWN_SECONDS
-                return
+        try:
+            quota = float(remaining)
+        except ValueError:
+            logger.warning(
+                "Ignoring unparsable X-Rate-Limit-Remaining header: %s", remaining
+            )
+            return
+
+        if quota < self.quota_floor:
+            logger.warning(
+                "Rate limit quota down to %s; pausing requests for %s seconds",
+                remaining,
+                QUOTA_COOLDOWN_SECONDS,
+            )
+            self._resume_at = time.monotonic() + QUOTA_COOLDOWN_SECONDS
+            return
 
         self._resume_at = None
 
@@ -231,12 +233,15 @@ class AsyncRequester(Requester):
     async def _wait_for_quota(self) -> None:
         """
         Wait out any cooldown that a previous response started.
-        """
-        if self._resume_at is None:
-            return
 
-        delay = self._resume_at - time.monotonic()
-        if delay > 0:
+        A response that arrives during the wait can push the cooldown back, so
+        the deadline is read again after every sleep.
+        """
+        while self._resume_at is not None:
+            delay = self._resume_at - time.monotonic()
+            if delay <= 0:
+                return
+
             await anyio.sleep(delay)
 
     async def aclose(self) -> None:
@@ -337,14 +342,18 @@ class AsyncRequester(Requester):
 
         attempt = 0
         while True:
-            await self._wait_for_quota()
+            # The permit is taken before the cooldown is waited out, so that a
+            # request already queued for a permit still re-checks the pause
+            # before it sends. A paused request holds its permit while it waits.
+            # The response is recorded before the permit is released, so the
+            # next holder sees a pause this response started.
             async with self._limiter:
+                await self._wait_for_quota()
                 response = await self._send(
                     client, method, full_url, request_headers, params, json
                 )
-
-            self._log_response(method, full_url, response)
-            self._record_quota(response)
+                self._log_response(method, full_url, response)
+                self._record_quota(response)
 
             if response.status_code != 429 or attempt >= RATE_LIMIT_RETRIES:
                 break
