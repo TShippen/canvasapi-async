@@ -143,6 +143,21 @@ TST102 Test Course 2 (1234568)
 TST103 Test Course 3 (1234569)
 ```
 
+On endpoints that number their pages, `canvasapi-async` fetches the pages after
+the first concurrently on a background event loop. `configure()` changes how
+many requests run at once, the rate limit quota below which requests pause, and
+how long a single request may take. Call it before fetching anything, because
+it raises `RuntimeError` once the background loop has started:
+
+```python
+>>> from canvasapi_async import configure
+
+>>> configure(concurrency=8, quota_floor=200, timeout=30)
+```
+
+Connections close and the loop stops at interpreter exit; call `shutdown()` to
+do it sooner.
+
 #### Keyword arguments
 
 Most of Canvas's API endpoints accept a variety of arguments. `canvasapi-async`
