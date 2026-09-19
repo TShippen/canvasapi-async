@@ -256,3 +256,11 @@ class TestRequester(unittest.TestCase):
         )
 
         self.assertEqual(params, [("a", "true"), ("b", "2020-01-02T00:00:00")])
+
+    def test_normalize_params_returns_the_same_list_object(self, m):
+        # The processed arguments are extended in place, so a caller that
+        # keeps the list it passed has to copy it before sending a second
+        # request built from the same arguments.
+        given = [("a", 1)]
+
+        self.assertIs(self.requester._normalize_params(given, {"b": 2}), given)

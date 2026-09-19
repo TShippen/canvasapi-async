@@ -8,12 +8,7 @@ import requests
 import respx
 
 from canvasapi_async.async_requester import AsyncRequester
-from canvasapi_async.concurrent_pagination import (
-    fetch_from,
-    fetch_pages,
-    page_number,
-    page_url,
-)
+from canvasapi_async.concurrent_pagination import fetch_pages, page_number, page_url
 from canvasapi_async.exceptions import Forbidden
 from canvasapi_async.paginated_list import PaginatedList
 from canvasapi_async.user import User
@@ -39,9 +34,6 @@ def register_pages(
     page_count: int,
     *,
     per_page: int = 2,
-    next_link_on_last_page: bool = False,
-    last_link_on_empty_page: bool = False,
-    omit_next_link_on: int | None = None,
     root: str | None = None,
 ) -> respx.Route:
     """
@@ -59,26 +51,17 @@ def register_pages(
         number = int(request.url.params["page"])
 
         if number > page_count:
-            headers = {"Link": link(number, "last")} if last_link_on_empty_page else {}
             empty: Any = {root: []} if root else []
-            return httpx.Response(200, headers=headers, json=empty)
+            return httpx.Response(200, json=empty)
 
         first = (number - 1) * per_page + 1
         records = [{"id": identifier} for identifier in range(first, first + per_page)]
-        carries_next = (
-            number < page_count or next_link_on_last_page
-        ) and number != omit_next_link_on
-        headers = {"Link": link(number + 1, "next")} if carries_next else {}
+        headers = {"Link": link(number + 1, "next")} if number < page_count else {}
         body: Any = {root: records} if root else records
 
         return httpx.Response(200, headers=headers, json=body)
 
     return respx_mock.get("courses").mock(side_effect=respond)
-
-
-def requested_pages(route: respx.Route) -> list[int]:
-    """The page number of every request the route answered, in order."""
-    return [int(call.request.url.params["page"]) for call in route.calls]
 
 
 def test_page_number_integer() -> None:
@@ -112,6 +95,24 @@ async def test_fetch_pages_returns_pages_in_order(
     assert list(pages) == [2, 3]
     assert [record.id for record in pages[2].records] == [3, 4]
     assert [record.id for record in pages[3].records] == [5, 6]
+
+
+@pytest.mark.asyncio
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_fetch_pages_reads_the_page_a_response_says_it_is(
+    respx_mock: respx.MockRouter,
+) -> None:
+    link = '<{}courses?page=5&per_page=2>; rel="current"'.format(
+        settings.BASE_URL_WITH_VERSION
+    )
+    respx_mock.get("courses").mock(
+        return_value=httpx.Response(200, headers={"Link": link}, json=[{"id": 1}])
+    )
+
+    async with make_test_requester() as requester:
+        pages = await fetch_pages(requester, make_test_list(requester), TEMPLATE, [2])
+
+    assert pages[2].current == 5
 
 
 @pytest.mark.asyncio
@@ -242,170 +243,17 @@ async def test_cancelled_exception_is_not_an_exception() -> None:
 
 @pytest.mark.asyncio
 @respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_with_last_known(respx_mock: respx.MockRouter) -> None:
-    route = register_pages(respx_mock, 4)
-
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester, make_test_list(requester), TEMPLATE, start=2, last=4, cap=4
-        )
-
-    assert list(pages) == [2, 3, 4]
-    assert route.call_count == 3
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_fits_first_batch(respx_mock: respx.MockRouter) -> None:
-    route = register_pages(respx_mock, 3)
-
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester, make_test_list(requester), TEMPLATE, start=2, last=None, cap=4
-        )
-
-    assert list(pages) == [2, 3]
-    assert route.call_count == 4
-    assert sorted(requested_pages(route)) == [2, 3, 4, 5]
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_finds_end_by_stride_and_bisection(
-    respx_mock: respx.MockRouter,
-) -> None:
-    route = register_pages(respx_mock, 23)
-
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester, make_test_list(requester), TEMPLATE, start=2, last=None, cap=4
-        )
-
-    assert list(pages) == list(range(2, 24))
-    requested = requested_pages(route)
-    assert sorted(number for number in requested if number <= 23) == list(range(2, 24))
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_end_by_empty_page(respx_mock: respx.MockRouter) -> None:
-    register_pages(respx_mock, 6, next_link_on_last_page=True)
-
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester, make_test_list(requester), TEMPLATE, start=2, last=None, cap=4
-        )
-
-    assert list(pages) == [2, 3, 4, 5, 6]
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_drops_pages_past_one_without_a_next_link(
-    respx_mock: respx.MockRouter,
-) -> None:
-    # A server that keeps serving records past the page whose next link it
-    # dropped. The page without the link ends the list all the same.
-    register_pages(respx_mock, 6, omit_next_link_on=3)
-
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester, make_test_list(requester), TEMPLATE, start=2, last=None, cap=4
-        )
-
-    assert list(pages) == [2, 3]
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_bisects_a_wide_gap(respx_mock: respx.MockRouter) -> None:
-    route = register_pages(respx_mock, 20, next_link_on_last_page=True)
-
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester, make_test_list(requester), TEMPLATE, start=2, last=None, cap=2
-        )
-
-    assert list(pages) == list(range(2, 21))
-    requested = requested_pages(route)
-    assert sorted(number for number in requested if number <= 20) == list(range(2, 21))
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_single_page_after_start(
-    respx_mock: respx.MockRouter,
-) -> None:
-    register_pages(respx_mock, 2)
-
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester, make_test_list(requester), TEMPLATE, start=2, last=None, cap=4
-        )
-
-    assert list(pages) == [2]
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_past_the_end_returns_nothing(
-    respx_mock: respx.MockRouter,
-) -> None:
-    route = register_pages(respx_mock, 2)
-
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester, make_test_list(requester), TEMPLATE, start=5, last=None, cap=4
-        )
-
-    assert pages == {}
-    assert route.call_count == 4
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_fetch_from_records_parity_with_root_and_extra_attribs(
+async def test_fetch_pages_records_parity_with_root_and_extra_attribs(
     respx_mock: respx.MockRouter,
 ) -> None:
     register_pages(respx_mock, 3, root="items")
 
     async with make_test_requester() as requester:
         plist = make_test_list(requester, _root="items", extra_attribs={"course_id": 1})
-        pages = await fetch_from(requester, plist, TEMPLATE, start=2, last=None, cap=4)
+        pages = await fetch_pages(requester, plist, TEMPLATE, [2, 3])
 
-    assert list(pages) == [2, 3]
     assert [record.id for record in pages[2].records] == [3, 4]
     assert all(record.course_id == 1 for record in pages[2].records)
-
-
-@pytest.mark.asyncio
-@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
-async def test_last_link_on_empty_page_is_ignored(
-    respx_mock: respx.MockRouter,
-) -> None:
-    route = register_pages(
-        respx_mock, 9, next_link_on_last_page=True, last_link_on_empty_page=True
-    )
-
-    # A stride wide enough to clear the end of the list in one round, so the
-    # pages the search asks for differ from the pages a run that believed an
-    # empty page's `last` would ask for.
-    async with make_test_requester() as requester:
-        pages = await fetch_from(
-            requester,
-            make_test_list(requester),
-            TEMPLATE,
-            start=2,
-            last=None,
-            cap=4,
-            stride_start=8,
-        )
-
-    assert list(pages) == list(range(2, 10))
-    # Every empty page here claims a `last` of 13 or beyond, and a run that
-    # believed one would fill every page up to it. Page 11 is the page only
-    # such a run reaches.
-    assert 11 not in requested_pages(route)
 
 
 def test_httpx_and_requests_parse_link_header_identically() -> None:
