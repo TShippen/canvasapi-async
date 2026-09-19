@@ -23,6 +23,9 @@ from tests import settings
 
 LOGGER_NAME = "canvasapi_async.async_requester"
 
+# The inherited logger that writes the request and response lines.
+REQUESTER_LOGGER_NAME = "canvasapi_async.requester"
+
 # Parameter lists whose form encoding has to survive the move to httpx.
 FORM_ENCODING_CASES = [
     pytest.param([("a", "1"), ("b", "2"), ("a", "3")], id="repeated_key_interleaved"),
@@ -453,6 +456,36 @@ async def test_429_falls_back_to_backoff_when_retry_after_is_not_a_number(
 
     assert response.status_code == 200
     assert elapsed >= 0.05
+
+
+@pytest.mark.asyncio
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_a_retried_request_logs_one_request_line_per_send(
+    respx_mock: respx.MockRouter,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    monkeypatch.setattr(async_requester, "BACKOFF_BASE_SECONDS", 0)
+    monkeypatch.setattr(async_requester, "BACKOFF_JITTER_SECONDS", 0)
+    respx_mock.get("throttled").mock(
+        side_effect=[httpx.Response(429, json={}), httpx.Response(200, json=[])]
+    )
+
+    with caplog.at_level(logging.INFO, logger=REQUESTER_LOGGER_NAME):
+        async with make_test_requester() as requester:
+            await requester.request_async("GET", "throttled")
+
+    messages = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == REQUESTER_LOGGER_NAME
+    ]
+    logged = [
+        line.split()[0]
+        for line in messages
+        if line.startswith(("Request:", "Response:"))
+    ]
+    assert logged == ["Request:", "Response:", "Request:", "Response:"]
 
 
 @pytest.mark.asyncio
