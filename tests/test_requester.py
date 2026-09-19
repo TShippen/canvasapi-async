@@ -5,7 +5,7 @@ from urllib.parse import quote
 import requests
 import requests_mock
 
-from canvasapi_async import Canvas
+from canvasapi_async import Canvas, __version__
 from canvasapi_async.exceptions import (
     BadRequest,
     CanvasException,
@@ -241,7 +241,7 @@ class TestRequester(unittest.TestCase):
         headers = self.requester._build_headers(None, True)
 
         self.assertEqual(headers["Authorization"], "Bearer {}".format(settings.API_KEY))
-        self.assertTrue(headers["User-Agent"].startswith("python-canvasapi_async/"))
+        self.assertEqual(headers["User-Agent"], f"python-canvasapi_async/{__version__}")
 
     def test_build_headers_without_auth_keeps_custom_user_agent(self, m):
         headers = self.requester._build_headers({"User-Agent": "x"}, False)

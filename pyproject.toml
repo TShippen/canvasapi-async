@@ -73,10 +73,15 @@ known-first-party = ["canvasapi_async"]
 
 [tool.mypy]
 strict = true
-# Modules are checked one at a time by path. Silent following still type-checks
-# the imported inherited modules but reports no errors in them, so a run against
-# a single annotated module is not buried under the unannotated package.
+# Only the modules named below are checked. Silent following still type-checks
+# the inherited modules they import but reports no errors in them, so a run is
+# not buried under the unannotated package.
 follow_imports = "silent"
+files = [
+    "canvasapi_async/async_requester.py",
+    "canvasapi_async/background_loop.py",
+    "canvasapi_async/concurrent_pagination.py",
+]
 
 [tool.coverage.run]
 source = ["canvasapi_async"]

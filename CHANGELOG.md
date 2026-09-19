@@ -7,6 +7,31 @@ upstream project, up to the point of the fork (version 3.6.0), is preserved in
 
 ## [Unreleased]
 
+### New Features
+
+- `PaginatedList` now fetches the pages after the first concurrently on
+  endpoints that paginate by page number. It asks for a batch of pages at a
+  time, and the batch grows as a read goes on. An endpoint that paginates by
+  bookmark cursor is still followed one page at a time, and a list that fits on
+  one page still costs one request.
+- Open-ended slices such as `courses[2:]` now work. They previously raised
+  `TypeError`.
+- Added `configure()` and `shutdown()` to the package root. `configure()` sets
+  the number of requests in flight at once (`concurrency`), the rate limit
+  quota below which requests pause (`quota_floor`), and the number of seconds a
+  single request may take (`timeout`); call it before fetching anything,
+  because it raises `RuntimeError` once the background event loop has started.
+  `shutdown()` closes the connections and stops the background event loop. It
+  runs at interpreter exit and can be called earlier.
+- Added `httpx` and `anyio` as dependencies. On an endpoint that paginates by
+  page number, a transport error on a page after the first is an `httpx`
+  exception rather than a `requests` one. An endpoint that paginates by
+  bookmark cursor is still fetched through `requests` and still raises its
+  errors.
+- Reading a list all the way through costs a few extra requests when Canvas
+  does not report how long the list is. The last batch asks for pages past the
+  end of the list, and those come back empty.
+
 ### Bugfixes
 
 - Fixed an issue where kwargs were not passed along to Canvas at nineteen
