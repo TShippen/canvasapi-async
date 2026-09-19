@@ -42,6 +42,7 @@ test = [
     "mypy>=2.3.1",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pytest-timeout>=2.4.0",
     "requests-mock",
     "respx>=0.23.1",
     "ruff",
@@ -83,4 +84,5 @@ source = ["canvasapi_async"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_default_fixture_loop_scope = "function"
+timeout = 60
 markers = ["slow: takes more than a second, usually by running a subprocess"]
