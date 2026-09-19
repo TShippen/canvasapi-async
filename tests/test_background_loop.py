@@ -25,6 +25,14 @@ LOGGER_NAME = "canvasapi_async.background_loop"
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+# The wordings Python reports an exception out of an exit handler under. Which
+# one an interpreter prints is its own business, so the tests below ask for any
+# of them or for none of them.
+ATEXIT_REPORTS = (
+    "Error in atexit._run_exitfuncs",
+    "Exception ignored in atexit callback",
+)
+
 # The body every subprocess script starts with: it uses the loop and leaves it
 # running, which is what the exit paths below are about.
 USES_THE_LOOP = """
@@ -37,6 +45,25 @@ async def seven():
 
 assert background_loop.run(seven) == 7
 """
+
+# A script that registers a requester which refuses to close and then returns
+# from its main body, so the failure shutdown raises is raised inside the exit
+# handler rather than to a caller. The requester never makes a request, so
+# nothing here reaches a network.
+FAILS_TO_CLOSE_AT_EXIT = (
+    USES_THE_LOOP
+    + """
+from canvasapi_async.requester import Requester
+
+
+async def refuse_to_close():
+    raise OSError("the socket is stuck at exit")
+
+
+requester = background_loop.requester_for(Requester("https://example.com", "token"))
+requester.aclose = refuse_to_close
+"""
+)
 
 # A script that makes a real request to a server of its own and never closes
 # the client, so the interpreter exits with an httpx client still open.
@@ -733,8 +760,30 @@ def test_a_script_that_exits_from_a_coroutine_keeps_its_status(tmp_path: Path) -
     # lands on stderr. What must not be there is a failure of the exit
     # handler that follows it.
     assert "Background event loop stopped with an error" in finished.stderr
-    assert "Exception ignored in atexit callback" not in finished.stderr
+    assert not any(report in finished.stderr for report in ATEXIT_REPORTS)
     assert "This portal is not running" not in finished.stderr
+
+
+@pytest.mark.slow
+def test_a_close_failure_at_exit_is_reported_and_ignored(tmp_path: Path) -> None:
+    """
+    A requester that refuses to close while the exit handler runs.
+
+    ``shutdown`` logs the failure and raises it, and an exception out of an
+    ``atexit`` callback is printed and otherwise ignored, so the status stays
+    the one a normal return gives.
+    """
+    finished = run_script(tmp_path, FAILS_TO_CLOSE_AT_EXIT)
+
+    assert finished.returncode == 0, finished.stderr
+    # Python reports an exception out of an exit handler under one of two
+    # wordings. The failure is printed twice: once by the record shutdown
+    # logs, and once by that report.
+    assert any(report in finished.stderr for report in ATEXIT_REPORTS)
+    assert finished.stderr.count("OSError: the socket is stuck at exit") == 2
+    # Logging is unconfigured, so the record reaches stderr through logging's
+    # handler of last resort, as it does for the script above.
+    assert "Failed to close the requester for https://example.com" in finished.stderr
 
 
 @pytest.mark.slow
