@@ -34,6 +34,21 @@ FORM_ENCODING_CASES = [
     pytest.param([("include[]", ["a", "b"])], id="list_value"),
 ]
 
+# Endpoints and parameter lists whose merged URL has to match what requests
+# prepares, including an endpoint that already carries the same key.
+QUERY_MERGE_CASES = [
+    pytest.param("courses?page=3&per_page=2", [], id="no_parameters"),
+    pytest.param("courses?page=3&per_page=2", [("per_page", 2)], id="repeated_key"),
+    pytest.param("courses?page=3&per_page=2", [("include[]", "a")], id="added_key"),
+    pytest.param("courses", [("per_page", 2)], id="no_query_of_its_own"),
+    pytest.param("courses?search=art%20history", [("b", "c d")], id="encoded_query"),
+    pytest.param("courses?page=3", [("include[]", ["a", "b"])], id="list_value"),
+    pytest.param("courses?", [("a", 1)], id="empty_query"),
+    pytest.param("courses#frag", [("a", 1)], id="fragment"),
+    pytest.param("courses?page=3#frag", [("a", 1)], id="fragment_after_query"),
+    pytest.param("courses?page=3#frag", [], id="no_parameters_with_fragment"),
+]
+
 # Methods that carry the parameters in a form body.
 FORM_BODY_METHODS = ["POST", "PUT", "PATCH", "DELETE"]
 
@@ -85,6 +100,60 @@ async def test_put_drops_none_values(respx_mock: respx.MockRouter) -> None:
         )
 
     assert route.calls.last.request.content == b"b=1"
+
+
+@pytest.mark.asyncio
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_get_keeps_the_endpoint_query(respx_mock: respx.MockRouter) -> None:
+    route = respx_mock.get("courses").mock(return_value=httpx.Response(200, json=[]))
+
+    async with make_test_requester() as requester:
+        await requester.request_async("GET", "courses?page=3&per_page=2")
+
+    assert route.calls.last.request.url.query == b"page=3&per_page=2"
+
+
+@pytest.mark.asyncio
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_get_appends_params_to_the_endpoint_query(
+    respx_mock: respx.MockRouter,
+) -> None:
+    route = respx_mock.get("courses").mock(return_value=httpx.Response(200, json=[]))
+
+    async with make_test_requester() as requester:
+        await requester.request_async(
+            "GET", "courses?page=3&per_page=2", _kwargs=[("include[]", "a")]
+        )
+
+    assert route.calls.last.request.url.query == b"page=3&per_page=2&include%5B%5D=a"
+
+
+@pytest.mark.asyncio
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_post_json_keeps_the_endpoint_query(respx_mock: respx.MockRouter) -> None:
+    route = respx_mock.post("graphql").mock(return_value=httpx.Response(200, json={}))
+
+    async with make_test_requester() as requester:
+        await requester.request_async(
+            "POST", "graphql?page=3", _kwargs=[("a", 1)], json={"q": 1}
+        )
+
+    assert route.calls.last.request.url.query == b"page=3&a=1"
+
+
+@pytest.mark.asyncio
+@respx.mock(base_url=settings.BASE_URL_WITH_VERSION)
+async def test_put_keeps_the_endpoint_query_out_of_the_form_body(
+    respx_mock: respx.MockRouter,
+) -> None:
+    route = respx_mock.put("courses/1").mock(return_value=httpx.Response(200, json={}))
+
+    async with make_test_requester() as requester:
+        await requester.request_async("PUT", "courses/1?page=3", _kwargs=[("a", 1)])
+
+    request = route.calls.last.request
+    assert request.url.query == b"page=3"
+    assert request.content == b"a=1"
 
 
 @pytest.mark.asyncio
@@ -352,6 +421,30 @@ def test_httpx_does_not_form_encode_a_list_of_pairs() -> None:
 def test_form_body_encoding_matches_requests(params: list[tuple[str, Any]]) -> None:
     """Pin the claim that lets the form body skip httpx's mapping-only encoder."""
     assert RequestEncodingMixin._encode_params(params) == urlencode(params, doseq=True)
+
+
+@pytest.mark.asyncio
+async def test_httpx_replaces_a_url_query_with_its_parameters() -> None:
+    """Pin the httpx behaviour that _merge_query exists to work around."""
+    url = settings.BASE_URL_WITH_VERSION + "courses?page=3&per_page=2"
+
+    async with httpx.AsyncClient() as client:
+        request = client.build_request("GET", url, params=[("include[]", "a")])
+
+    assert (
+        str(request.url) == settings.BASE_URL_WITH_VERSION + "courses?include%5B%5D=a"
+    )
+
+
+@pytest.mark.parametrize("endpoint, params", QUERY_MERGE_CASES)
+def test_query_merge_matches_requests(
+    endpoint: str, params: list[tuple[str, Any]]
+) -> None:
+    """Pin the requests URL that _merge_query reproduces."""
+    url = settings.BASE_URL_WITH_VERSION + endpoint
+    prepared = requests.Request("GET", url, params=params).prepare()
+
+    assert make_test_requester()._merge_query(url, params) == prepared.url
 
 
 @pytest.mark.asyncio

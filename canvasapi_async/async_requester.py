@@ -103,6 +103,29 @@ class AsyncRequester(Requester):
 
         return self._client
 
+    def _merge_query(self, url: str, params: list[tuple[str, Any]]) -> str:
+        """
+        Append parameters to whatever query a URL already carries.
+
+        httpx replaces a URL's query with the parameters it is handed, where
+        requests appends them, so a URL that carries a query of its own has to
+        arrive with the two already joined. A fragment stays at the end, past
+        the query it follows.
+
+        :param url: The full URL to request.
+        :param params: The processed keyword arguments, as 2-tuples.
+        """
+        if not params:
+            return url
+
+        addressed, hash_sign, fragment = url.partition("#")
+        path, _, query = addressed.partition("?")
+        encoded = urlencode(params, doseq=True)
+        if query:
+            encoded = "{}&{}".format(query, encoded)
+
+        return "{}?{}{}{}".format(path, encoded, hash_sign, fragment)
+
     def _record_quota(self, response: httpx.Response) -> None:
         """
         Note what a response reports about the remaining rate limit quota.
@@ -177,10 +200,12 @@ class AsyncRequester(Requester):
             or a false value to send the parameters as form data instead.
         """
         if method == "GET":
-            return await client.get(url, headers=headers, params=params)
+            return await client.get(self._merge_query(url, params), headers=headers)
 
         if method == "POST" and json:
-            return await client.post(url, headers=headers, params=params, json=json)
+            return await client.post(
+                self._merge_query(url, params), headers=headers, json=json
+            )
 
         if method not in METHODS_WITH_FORM_BODY:
             raise ValueError("Unsupported HTTP method: {}".format(method))
