@@ -245,14 +245,16 @@ def shutdown() -> None:
     """
     Close every registered requester and stop the background loop.
 
-    Calling this twice, or from a process that inherited another one's loop,
-    does nothing. The settings :func:`configure` stored are kept, and a later
-    :func:`run` starts a fresh loop. Calling it from the loop's own thread
-    raises, since a loop cannot wait for itself to stop.
+    Calling this twice does nothing. A call from a process that inherited
+    another one's loop leaves that loop and its requesters alone, and only
+    forgets this process's references to them. The settings :func:`configure`
+    stored are kept, and a later :func:`run` starts a fresh loop. Calling it
+    from the loop's own thread raises, since a loop cannot wait for itself to
+    stop.
 
-    A :func:`run` already in flight on another thread is left to finish, and
-    this waits for it. A :func:`run` that reaches the portal after it has
-    stopped raises ``RuntimeError``.
+    In the process that owns the loop, a :func:`run` already in flight on
+    another thread is left to finish, and this waits for it. A :func:`run`
+    that reaches the portal after it has stopped raises ``RuntimeError``.
 
     A loop that has stopped on its own is simply left stopped, and its
     requesters with it. Otherwise every requester is closed even if one of

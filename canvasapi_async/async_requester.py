@@ -338,7 +338,6 @@ class AsyncRequester(Requester):
         ]
 
         client = self._ensure_client()
-        self._log_request(method, full_url, request_headers, params, json)
 
         attempt = 0
         while True:
@@ -349,6 +348,7 @@ class AsyncRequester(Requester):
             # next holder sees a pause this response started.
             async with self._limiter:
                 await self._wait_for_quota()
+                self._log_request(method, full_url, request_headers, params, json)
                 response = await self._send(
                     client, method, full_url, request_headers, params, json
                 )
