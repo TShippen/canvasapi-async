@@ -115,6 +115,217 @@
 		],
 		"status_code": 200
 	},
+	"bookmark_p1": {
+		"method": "ANY",
+		"endpoint": "bookmark_objects?per_page=2",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/bookmark_objects?page=bookmark:abc&per_page=2>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"bookmark_p2": {
+		"method": "ANY",
+		"endpoint": "bookmark_objects?page=bookmark:abc&per_page=2",
+		"data": [
+			{
+				"id": "3",
+				"name": "object 3"
+			},
+			{
+				"id": "4",
+				"name": "object 4"
+			}
+		],
+		"status_code": 200
+	},
+	"current_mismatch_p1": {
+		"method": "ANY",
+		"endpoint": "current_mismatch_objects?per_page=2",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/current_mismatch_objects?page=2&per_page=2>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"current_mismatch_p2": {
+		"method": "ANY",
+		"endpoint": "current_mismatch_objects?page=2&per_page=2",
+		"data": [
+			{
+				"id": "3",
+				"name": "object 3"
+			},
+			{
+				"id": "4",
+				"name": "object 4"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/current_mismatch_objects?page=5&per_page=2>; rel=\"current\""
+		},
+		"status_code": 200
+	},
+	"empty_first_page_p1": {
+		"method": "ANY",
+		"endpoint": "empty_first_page_objects?per_page=2",
+		"data": [],
+		"headers": {
+			"Link": "<https://example.com/api/v1/empty_first_page_objects?page=2&per_page=2>; rel=\"next\", <https://example.com/api/v1/empty_first_page_objects?page=1&per_page=2>; rel=\"last\""
+		},
+		"status_code": 200
+	},
+	"empty_first_page_p2": {
+		"method": "ANY",
+		"endpoint": "empty_first_page_objects?page=2&per_page=2",
+		"data": [
+			{
+				"id": "3",
+				"name": "object 3"
+			},
+			{
+				"id": "4",
+				"name": "object 4"
+			}
+		],
+		"status_code": 200
+	},
+	"forbidden_p1": {
+		"method": "ANY",
+		"endpoint": "forbidden_objects?per_page=2",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/forbidden_objects?page=2&per_page=2>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"forbidden_p2": {
+		"method": "ANY",
+		"endpoint": "forbidden_objects?page=2&per_page=2",
+		"data": {
+			"status": "unauthorized",
+			"errors": [
+				{
+					"message": "user not authorized to perform that action"
+				}
+			]
+		},
+		"status_code": 403
+	},
+	"last_link_p1": {
+		"method": "ANY",
+		"endpoint": "last_link_objects?per_page=2",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/last_link_objects?page=2&per_page=2>; rel=\"next\", <https://example.com/api/v1/last_link_objects?page=3&per_page=2>; rel=\"last\""
+		},
+		"status_code": 200
+	},
+	"last_link_p2": {
+		"method": "ANY",
+		"endpoint": "last_link_objects?page=2&per_page=2",
+		"data": [
+			{
+				"id": "3",
+				"name": "object 3"
+			},
+			{
+				"id": "4",
+				"name": "object 4"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/last_link_objects?page=3&per_page=2>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"last_link_p3": {
+		"method": "ANY",
+		"endpoint": "last_link_objects?page=3&per_page=2",
+		"data": [
+			{
+				"id": "5",
+				"name": "object 5"
+			},
+			{
+				"id": "6",
+				"name": "object 6"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/last_link_objects?page=4&per_page=2>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"short_first_page_p1": {
+		"method": "ANY",
+		"endpoint": "short_first_page_objects?per_page=100",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/short_first_page_objects?page=2&per_page=100>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"short_first_page_p2": {
+		"method": "ANY",
+		"endpoint": "short_first_page_objects?page=2&per_page=100",
+		"data": [
+			{
+				"id": "3",
+				"name": "object 3"
+			},
+			{
+				"id": "4",
+				"name": "object 4"
+			}
+		],
+		"status_code": 200
+	},
 	"no_header_4_2_pages_p1": {
 		"method": "ANY",
 		"endpoint": "no_header_four_objects_two_pages?per_page=2",
@@ -151,6 +362,30 @@
 					"name": "object 4"
 				}
 			]
+		},
+		"status_code": 200
+	},
+	"no_header_4_2_pages_past_end_p3": {
+		"method": "ANY",
+		"endpoint": "no_header_four_objects_two_pages?page=3&per_page=2",
+		"data": {
+			"assessments": []
+		},
+		"status_code": 200
+	},
+	"no_header_4_2_pages_past_end_p4": {
+		"method": "ANY",
+		"endpoint": "no_header_four_objects_two_pages?page=4&per_page=2",
+		"data": {
+			"assessments": []
+		},
+		"status_code": 200
+	},
+	"no_header_4_2_pages_past_end_p5": {
+		"method": "ANY",
+		"endpoint": "no_header_four_objects_two_pages?page=5&per_page=2",
+		"data": {
+			"assessments": []
 		},
 		"status_code": 200
 	},
@@ -195,6 +430,183 @@
 				}
 			}
 		},
+		"status_code": 200
+	},
+	"short_middle_p1": {
+		"method": "ANY",
+		"endpoint": "short_middle_objects?per_page=4",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			},
+			{
+				"id": "3",
+				"name": "object 3"
+			},
+			{
+				"id": "4",
+				"name": "object 4"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/short_middle_objects?page=2&per_page=4>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"short_middle_p2": {
+		"method": "ANY",
+		"endpoint": "short_middle_objects?page=2&per_page=4",
+		"data": [
+			{
+				"id": "5",
+				"name": "object 5"
+			},
+			{
+				"id": "6",
+				"name": "object 6"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/short_middle_objects?page=3&per_page=4>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"short_middle_p3": {
+		"method": "ANY",
+		"endpoint": "short_middle_objects?page=3&per_page=4",
+		"data": [
+			{
+				"id": "7",
+				"name": "object 7"
+			},
+			{
+				"id": "8",
+				"name": "object 8"
+			},
+			{
+				"id": "9",
+				"name": "object 9"
+			},
+			{
+				"id": "10",
+				"name": "object 10"
+			}
+		],
+		"status_code": 200
+	},
+	"long_p1": {
+		"method": "ANY",
+		"endpoint": "long_objects?per_page=1",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/long_objects?page=2&per_page=1>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"retry_p1_error": {
+		"method": "ANY",
+		"endpoint": "retry_objects?per_page=2&active=true",
+		"data": {
+			"errors": [
+				{
+					"message": "an unexpected error"
+				}
+			]
+		},
+		"status_code": 500
+	},
+	"retry_p1": {
+		"method": "ANY",
+		"endpoint": "retry_objects?per_page=2&active=true",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			}
+		],
+		"status_code": 200
+	},
+	"empty_end_p1": {
+		"method": "ANY",
+		"endpoint": "empty_end_objects?per_page=2",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/empty_end_objects?page=2&per_page=2>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"empty_end_p2": {
+		"method": "ANY",
+		"endpoint": "empty_end_objects?page=2&per_page=2",
+		"data": [
+			{
+				"id": "3",
+				"name": "object 3"
+			},
+			{
+				"id": "4",
+				"name": "object 4"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/empty_end_objects?page=3&per_page=2>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"odd_per_page_p1": {
+		"method": "ANY",
+		"endpoint": "odd_per_page_objects",
+		"data": [
+			{
+				"id": "1",
+				"name": "object 1"
+			},
+			{
+				"id": "2",
+				"name": "object 2"
+			}
+		],
+		"headers": {
+			"Link": "<https://example.com/api/v1/odd_per_page_objects?page=2>; rel=\"next\""
+		},
+		"status_code": 200
+	},
+	"odd_per_page_p2": {
+		"method": "ANY",
+		"endpoint": "odd_per_page_objects?page=2",
+		"data": [
+			{
+				"id": "3",
+				"name": "object 3"
+			},
+			{
+				"id": "4",
+				"name": "object 4"
+			}
+		],
 		"status_code": 200
 	}
 }

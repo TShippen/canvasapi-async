@@ -8,6 +8,7 @@ import canvasapi_async  # noqa
 
 # Qualfied names of functions that are exempt from requiring kwargs
 WHITELIST = (
+    "AsyncRequester.aclose",
     "Canvas.get_current_user",
     "CanvasObject.set_attributes",
     "File.download",
