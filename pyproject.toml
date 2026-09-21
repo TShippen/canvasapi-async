@@ -52,6 +52,11 @@ dev = [
     "pre-commit",
 ]
 
+[tool.uv]
+# The checks workflow installs the newest uv this allows; locally, uv refuses
+# to run when it is older.
+required-version = ">=0.12.1"
+
 [tool.hatch.version]
 path = "canvasapi_async/__init__.py"
 
