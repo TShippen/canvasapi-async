@@ -21,6 +21,8 @@ upstream project, up to the point of the fork (version 3.6.0), is preserved in
   quota below which requests pause (`quota_floor`), and the number of seconds a
   single request may take (`timeout`); call it before fetching anything,
   because it raises `RuntimeError` once the background event loop has started.
+  It raises `TypeError` for a value of the wrong type and `ValueError` for a
+  `concurrency` below 1, a `quota_floor` below 0, or a `timeout` of 0 or less.
   `shutdown()` closes the connections and stops the background event loop. It
   runs at interpreter exit and can be called earlier.
 - Added `httpx` and `anyio` as dependencies. On an endpoint that paginates by

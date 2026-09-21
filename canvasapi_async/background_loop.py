@@ -104,6 +104,24 @@ def _own_portal() -> BlockingPortal | None:
     return _portal if _pid == os.getpid() else None
 
 
+def _require_type(
+    name: str, value: object, accepted: tuple[type, ...], described: str
+) -> None:
+    """
+    Refuse a setting whose type is not one :func:`configure` accepts.
+
+    A bool is refused even where an int is accepted. It is a subclass of int,
+    so it would otherwise pass as a count of one or zero.
+
+    :param name: The name of the setting, for the error message.
+    :param value: The value the caller passed.
+    :param accepted: The types the setting may have.
+    :param described: How the error message names those types.
+    """
+    if isinstance(value, bool) or not isinstance(value, accepted):
+        raise TypeError(f"{name} must be {described}, not {type(value).__name__}")
+
+
 def _serve(ready: "Future[BlockingPortal]") -> None:
     """
     Run an event loop until its portal is stopped.
@@ -149,11 +167,34 @@ def configure(
     outlive :func:`shutdown`, which stops the loop rather than forgetting what
     the caller asked for.
 
-    :param concurrency: The number of requests allowed in flight at once.
+    A value of the wrong type raises TypeError and a value out of range raises
+    ValueError, and either one leaves every setting as it was. Left unchecked,
+    a concurrency of zero would make the first batch of pages wait forever,
+    and a timeout of zero would fail every request.
+
+    :param concurrency: The number of requests allowed in flight at once, a
+        whole number of at least 1.
     :param quota_floor: The value of Canvas's ``X-Rate-Limit-Remaining``
-        header below which requests pause for a cooldown.
-    :param timeout: The number of seconds a single request may take.
+        header below which requests pause for a cooldown, a whole number of
+        at least 0.
+    :param timeout: The number of seconds a single request may take, a number
+        above 0.
     """
+    if concurrency is not None:
+        _require_type("concurrency", concurrency, (int,), "a whole number")
+        if concurrency < 1:
+            raise ValueError("concurrency must be at least 1")
+
+    if quota_floor is not None:
+        _require_type("quota_floor", quota_floor, (int,), "a whole number")
+        if quota_floor < 0:
+            raise ValueError("quota_floor must be at least 0")
+
+    if timeout is not None:
+        _require_type("timeout", timeout, (int, float), "a number")
+        if timeout <= 0:
+            raise ValueError("timeout must be above 0")
+
     with _lock:
         if _own_portal() is not None:
             raise RuntimeError(

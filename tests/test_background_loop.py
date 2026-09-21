@@ -326,6 +326,78 @@ def test_configured_settings_survive_a_shutdown() -> None:
     assert background_loop.requester_for(make_requester()).timeout == 1.5
 
 
+@pytest.mark.parametrize(
+    "setting",
+    [
+        {"concurrency": 0},
+        {"concurrency": -1},
+        {"quota_floor": -1},
+        {"timeout": 0},
+        {"timeout": -1.5},
+    ],
+)
+def test_configure_refuses_a_value_out_of_range(setting: dict[str, Any]) -> None:
+    (name,) = setting
+
+    with pytest.raises(ValueError, match=name):
+        background_loop.configure(**setting)
+
+
+@pytest.mark.parametrize(
+    "setting",
+    [
+        {"concurrency": True},
+        {"concurrency": 2.0},
+        {"concurrency": "2"},
+        {"quota_floor": False},
+        {"quota_floor": 1.5},
+        {"quota_floor": "150"},
+        {"timeout": True},
+        {"timeout": "30"},
+    ],
+)
+def test_configure_refuses_a_value_of_the_wrong_type(setting: dict[str, Any]) -> None:
+    (name,) = setting
+
+    with pytest.raises(TypeError, match=name):
+        background_loop.configure(**setting)
+
+
+def test_configure_stores_nothing_when_it_refuses() -> None:
+    before = dict(background_loop._settings)
+
+    with pytest.raises(ValueError):
+        background_loop.configure(concurrency=3, timeout=0)
+
+    assert background_loop._settings == before
+
+
+def test_configure_accepts_the_lowest_values_in_range() -> None:
+    background_loop.configure(concurrency=1, quota_floor=0)
+
+    requester = background_loop.requester_for(make_requester())
+
+    assert (requester.concurrency, requester.quota_floor) == (1, 0)
+
+
+def test_configure_accepts_a_whole_number_timeout() -> None:
+    background_loop.configure(timeout=30)
+
+    assert background_loop.requester_for(make_requester()).timeout == 30
+
+
+def test_anyio_accepts_a_semaphore_nothing_can_acquire() -> None:
+    # Why configure() refuses a concurrency of zero itself: anyio builds the
+    # semaphore without complaint, and a request would then wait on it forever.
+    assert anyio.Semaphore(0).value == 0
+
+
+def test_httpx_accepts_a_timeout_of_zero() -> None:
+    # Why configure() refuses a timeout of zero itself: httpx stores it without
+    # complaint, and every request would then time out at once.
+    assert httpx.Timeout(0).read == 0
+
+
 def test_shutdown_is_idempotent() -> None:
     background_loop.run(seven)
 
