@@ -39,12 +39,28 @@ Install directly from the repository:
 pip install git+https://github.com/TShippen/canvasapi-async.git
 ```
 
-For local development (using [uv](https://docs.astral.sh/uv/)):
+## Development
+
+The project uses [uv](https://docs.astral.sh/uv/). Install the environment once,
+then run any check on its own:
 
 ```
 uv sync
 uv run pytest
+uv run coverage run -m pytest
+uv run coverage report
+uv run ruff check canvasapi_async tests
+uv run ruff format --check canvasapi_async tests
+uv run mypy
 ```
+
+`coverage report` fails when coverage falls below the threshold set in
+`pyproject.toml`. Three scripts check source conventions that ruff has no rule
+for; [`scripts/README.md`](scripts/README.md) explains them.
+
+Every push runs all of these on GitHub, on each supported Python version,
+through [`.github/workflows/checks.yml`](.github/workflows/checks.yml). The
+results are a report. They do not block a push or a merge.
 
 ## Documentation
 
