@@ -5,9 +5,11 @@ This changelog covers `canvasapi-async`, an async-focused fork of
 upstream project, up to the point of the fork (version 3.6.0), is preserved in
 [CHANGELOG.upstream.md](CHANGELOG.upstream.md).
 
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
 ## [Unreleased]
 
-### New Features
+### Added
 
 - `PaginatedList` now fetches the pages after the first concurrently on
   endpoints that paginate by page number. It asks for a batch of pages at a
@@ -16,7 +18,7 @@ upstream project, up to the point of the fork (version 3.6.0), is preserved in
   one page still costs one request.
 - Open-ended slices such as `courses[2:]` now work. They previously raised
   `TypeError`.
-- Added `configure()` and `shutdown()` to the package root. `configure()` sets
+- `configure()` and `shutdown()` at the package root. `configure()` sets
   the number of requests in flight at once (`concurrency`), the rate limit
   quota below which requests pause (`quota_floor`), and the number of seconds a
   single request may take (`timeout`); call it before fetching anything,
@@ -25,16 +27,39 @@ upstream project, up to the point of the fork (version 3.6.0), is preserved in
   `concurrency` below 1, a `quota_floor` below 0, or a `timeout` of 0 or less.
   `shutdown()` closes the connections and stops the background event loop. It
   runs at interpreter exit and can be called earlier.
-- Added `httpx` and `anyio` as dependencies. On an endpoint that paginates by
+- `httpx` and `anyio` as dependencies. On an endpoint that paginates by
   page number, a transport error on a page after the first is an `httpx`
   exception rather than a `requests` one. An endpoint that paginates by
   bookmark cursor is still fetched through `requests` and still raises its
   errors.
+- A coverage threshold of 100% in `pyproject.toml`. `coverage report` now
+  fails when coverage drops below it.
+- A GitHub Actions workflow that runs the tests, coverage, ruff, mypy, and the
+  source convention scripts on every push, on each supported Python version.
+  The results are a report. No rule makes them required, so a failure does not
+  block a push or a merge.
+- A `CONTRIBUTING.md` stating that contributions are not accepted.
+- The minimum uv version, declared in `pyproject.toml`.
+
+### Changed
+
 - Reading a list all the way through costs a few extra requests when Canvas
   does not report how long the list is. The last batch asks for pages past the
   end of the list, and those come back empty.
+- The version is `0.2.0.dev0` while the next release is in development.
+- pytest is the test runner, with a timeout of sixty seconds per test.
+- ruff's flake8-async rules are enabled. They flag blocking calls inside async
+  functions.
 
-### Bugfixes
+### Removed
+
+- `scripts/run_tests.sh`. The README's Development section lists the
+  commands, and `scripts/README.md` describes the convention scripts.
+- The issue and pull request templates inherited from upstream.
+- The deploy document and the markdown lint configuration inherited from
+  upstream, and unused entries from `.gitignore`.
+
+### Fixed
 
 - Fixed an issue where kwargs were not passed along to Canvas at nineteen
   `PaginatedList` and `request` call sites across the resource modules
@@ -53,18 +78,21 @@ upstream project, up to the point of the fork (version 3.6.0), is preserved in
 Initial release of the fork. This establishes a clean, modernized foundation;
 the asynchronous rewrite is tracked separately.
 
-### General
+### Added
+
+- Fork attribution (`NOTICE`, updated `LICENSE` and `AUTHORS.md`).
+
+### Changed
 
 - Forked from CanvasAPI 3.6.0 by the University of Central Florida - Center for
   Distributed Learning.
 - Renamed the package to `canvasapi-async` (import name `canvasapi_async`).
 - Reset versioning to `0.1.0` as a new project lineage.
-
-### Backstage
-
 - Migrated packaging to `uv` and `pyproject.toml` (hatchling build backend).
 - Replaced `black`, `isort`, and `flake8` with `ruff` for linting and formatting.
-- Removed GitHub Actions CI workflows.
-- Froze the Sphinx documentation and removed the Read the Docs and GitHub Pages
-  build configurations.
-- Added fork attribution (`NOTICE`, updated `LICENSE` and `AUTHORS.md`).
+- Froze the Sphinx documentation.
+
+### Removed
+
+- GitHub Actions CI workflows.
+- The Read the Docs and GitHub Pages build configurations.
