@@ -1,27 +1,31 @@
 # canvasapi-async
 
-`canvasapi-async` is an async-focused fork of
+`canvasapi-async` is a fork of
 [CanvasAPI](https://github.com/ucfopen/canvasapi), a Python library for accessing
 Instructure's [Canvas LMS API](https://canvas.instructure.com/doc/api/index.html).
-The goal of this fork is to pull records in batches more quickly while respecting
-Canvas API rate limits.
+It reads long paginated lists faster by fetching pages concurrently, and it
+pauses those fetches when the Canvas rate limit quota runs low. Everything else
+works as it does in CanvasAPI. The classes and methods are the same, and every
+call is still synchronous. A script switches to this fork by changing its
+import from `canvasapi` to `canvasapi_async`.
 
-> **Note:** This is an early-stage fork (version 0.1.0). The current codebase is
-> the modernized synchronous foundation inherited from CanvasAPI 3.6.0; the
-> asynchronous rewrite is in progress.
+The fork is at an early stage and its version is below 1.0. The public API can
+change between releases. This is a personal project and does not accept
+contributions; see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Goals
 
-- **Asynchronous bulk fetching.** Materialize paginated results concurrently,
-  within a single list and across many, while respecting Canvas rate limits. The
-  existing synchronous object API stays in place.
-- **Full static typing.** The package will be statically typed. Annotations will be
-  added one module at a time. When a module is annotated, its docstrings drop the
-  `:type:` and `:rtype:` fields so the signature is the single source for types.
-- **Staying mergeable with upstream.** The resource modules are kept as close to
-  upstream CanvasAPI as possible so that future upstream releases can be merged.
-  Changes that alter behavior are confined to the request, pagination, and base
-  object layers.
+- **Faster reads of paginated lists.** Where Canvas numbers the pages of a list,
+  the pages after the first are fetched concurrently. The synchronous object API
+  stays as it is.
+- **Full static typing.** Annotations are added one module at a time, and mypy
+  checks the annotated modules listed in `pyproject.toml`. When a module is
+  annotated, its docstrings drop the `:type:` and `:rtype:` fields, so the
+  signature is the single source for types.
+- **Staying mergeable with upstream.** The resource modules take only the
+  changes upstream CanvasAPI has merged or will merge, so that future upstream
+  releases can be merged here. New behaviour lives in the request, pagination,
+  and base object layers.
 
 ## Attribution
 
@@ -33,11 +37,15 @@ licensed under the MIT License. It remains under the MIT License. See
 
 ## Installation
 
-Install directly from the repository:
+The package is not on PyPI. Install it from the repository:
 
 ```
 pip install git+https://github.com/TShippen/canvasapi-async.git
 ```
+
+This installs the latest commit on the `develop` branch. To install a fixed
+point instead, append `@` and a commit hash or tag to the URL. Python 3.10 or
+later is required.
 
 ## Development
 
@@ -70,8 +78,9 @@ the synchronous API and does not reflect the fork's rename or async changes.
 
 ## Quickstart
 
-Like the upstream library, `canvasapi-async` exposes a single `Canvas` class that
-provides access to the rest of the API.
+Like the upstream library, `canvasapi-async` exposes a `Canvas` class that
+provides access to the rest of the API. The package also exports `configure()`
+and `shutdown()`, described under Paginated Lists below.
 
 Instantiate a `Canvas` object with your Canvas instance's root API URL and a valid
 API key:
@@ -141,7 +150,8 @@ You can grab an element by index, iterate over it, and take a slice of it.
 **Warning**: `PaginatedList` lazily loads its elements. There's no way to determine
 the exact number of records Canvas will return without traversing the list fully.
 This means that `PaginatedList` isn't aware of its own length and negative indexing
-is not currently supported.
+is not supported. Slices with a start and a stop work, and so do open-ended
+slices such as `courses[2:]`.
 
 ```python
 # Retrieve a list of courses the user is enrolled in
@@ -159,11 +169,20 @@ TST102 Test Course 2 (1234568)
 TST103 Test Course 3 (1234569)
 ```
 
-On endpoints that number their pages, `canvasapi-async` fetches the pages after
-the first concurrently on a background event loop. `configure()` changes how
-many requests run at once, the rate limit quota below which requests pause, and
-how long a single request may take. Call it before fetching anything, because
-it raises `RuntimeError` once the background loop has started:
+Every `PaginatedList` fetches its first page synchronously, the way CanvasAPI
+does. What happens next depends on how Canvas paginates the endpoint. Where
+Canvas numbers the pages, `canvasapi-async` fetches the pages after the first
+concurrently, on an event loop that runs on a background thread and starts at
+the first such fetch. Where Canvas paginates with a bookmark cursor, as the
+enrollment endpoints do, the pages are still fetched one at a time.
+
+`configure()` sets three limits on the concurrent fetches:
+
+- `concurrency`: how many requests run at once. A whole number of at least 1.
+- `quota_floor`: the remaining rate limit quota, as Canvas reports it in the
+  `X-Rate-Limit-Remaining` header, below which the fetches pause for a
+  cooldown. A whole number of at least 0.
+- `timeout`: how many seconds one request may take. A number above 0.
 
 ```python
 >>> from canvasapi_async import configure
@@ -171,8 +190,20 @@ it raises `RuntimeError` once the background loop has started:
 >>> configure(concurrency=8, quota_floor=200, timeout=30)
 ```
 
-Connections close and the loop stops at interpreter exit; call `shutdown()` to
-do it sooner.
+Call it before fetching anything. It raises `RuntimeError` once the background
+loop has started, `TypeError` for a value of the wrong type, and `ValueError`
+for a value out of range. A refused call changes no setting.
+
+These limits apply only to the concurrent fetches. The first page of every
+list, every page of a bookmark-paginated list, and every other call in the
+library go through the synchronous `requests` session. That session runs one
+request at a time, does not pause on the rate limit quota, and waits for a
+response indefinitely.
+
+`shutdown()` closes the connections and stops the background loop. It runs at
+interpreter exit, where it waits for a request still in flight, and you can call
+it earlier. After it returns, `configure()` accepts new settings, and the next
+concurrent fetch starts a fresh loop.
 
 #### Keyword arguments
 
@@ -184,6 +215,9 @@ accept arguments.
 # Get all of the active courses a user is currently enrolled in
 >>> courses = user.get_courses(enrollment_state='active')
 ```
+
+A call that returns a `PaginatedList` sends `per_page=100` unless you pass your
+own `per_page`.
 
 ## License
 
