@@ -1,7 +1,6 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 
-import pytz
 import requests_mock
 
 from canvasapi_async.canvas_object import CanvasObject
@@ -29,18 +28,19 @@ class TestCanvasObject(unittest.TestCase):
 
         start_date = datetime.strptime(
             attributes["start_at"], "%Y-%m-%dT%H:%M:%SZ"
-        ).replace(tzinfo=pytz.utc)
+        ).replace(tzinfo=timezone.utc)
         end_date = datetime.strptime(attributes["end_at"], "%Y-%m-%d").replace(
-            tzinfo=pytz.utc
+            tzinfo=timezone.utc
         )
         offset_time = datetime.strptime(
             "2018-05-21T09:22:25Z", "%Y-%m-%dT%H:%M:%SZ"
-        ).replace(tzinfo=pytz.utc)
+        ).replace(tzinfo=timezone.utc)
 
         self.canvas_object.set_attributes(attributes)
 
         self.assertTrue(hasattr(self.canvas_object, "start_at_date"))
         self.assertEqual(self.canvas_object.start_at_date, start_date)
+        self.assertIs(self.canvas_object.start_at_date.tzinfo, timezone.utc)
         self.assertTrue(hasattr(self.canvas_object, "end_at_date"))
         self.assertEqual(self.canvas_object.end_at_date, end_date)
         self.assertTrue(hasattr(self.canvas_object, "offset_time_date"))

@@ -1,7 +1,6 @@
 import datetime
 import unittest
 
-import pytz
 import requests_mock
 
 from canvasapi_async import Canvas
@@ -136,7 +135,7 @@ class TestAccount(unittest.TestCase):
         self.assertEqual(notif.subject, subject)
         self.assertTrue(hasattr(notif, "start_at_date"))
         self.assertIsInstance(notif.start_at_date, datetime.datetime)
-        self.assertEqual(notif.start_at_date.tzinfo, pytz.utc)
+        self.assertIs(notif.start_at_date.tzinfo, datetime.timezone.utc)
 
     def test_create_notification_missing_field(self, m):
         with self.assertRaises(RequiredFieldMissing):

@@ -1,5 +1,6 @@
+from datetime import timezone
+
 import arrow
-import pytz
 
 
 class CanvasObject(object):
@@ -63,7 +64,7 @@ class CanvasObject(object):
 
             try:
                 naive = arrow.get(str(value)).datetime
-                aware = naive.replace(tzinfo=pytz.utc) - naive.utcoffset()
+                aware = naive.replace(tzinfo=timezone.utc) - naive.utcoffset()
                 self.__setattr__(attribute + "_date", aware)
             except arrow.ParserError:
                 pass

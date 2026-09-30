@@ -50,6 +50,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - pytest is the test runner, with a timeout of sixty seconds per test.
 - ruff's flake8-async rules are enabled. They flag blocking calls inside async
   functions.
+- The `*_date` attributes that `CanvasObject` derives from ISO 8601 strings
+  now carry `datetime.timezone.utc` as their `tzinfo` instead of `pytz.utc`.
+  They represent the same instants and compare equal to what they did before.
 
 ### Removed
 
@@ -58,6 +61,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The issue and pull request templates inherited from upstream.
 - The deploy document and the markdown lint configuration inherited from
   upstream, and unused entries from `.gitignore`.
+- `pytz` as a dependency.
 
 ### Fixed
 

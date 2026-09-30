@@ -15,7 +15,6 @@ dependencies = [
     "anyio>=4.15.1",
     "arrow",
     "httpx>=0.28.1",
-    "pytz",
     "requests",
 ]
 classifiers = [

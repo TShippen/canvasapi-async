@@ -1,8 +1,7 @@
 import unittest
 import warnings
-from datetime import datetime
+from datetime import datetime, timezone
 
-import pytz
 import requests_mock
 
 from canvasapi_async import Canvas
@@ -253,7 +252,7 @@ class TestCanvas(unittest.TestCase):
         self.assertIsInstance(course.start_at, str)
         self.assertTrue(hasattr(course, "start_at_date"))
         self.assertIsInstance(course.start_at_date, datetime)
-        self.assertEqual(course.start_at_date.tzinfo, pytz.utc)
+        self.assertIs(course.start_at_date.tzinfo, timezone.utc)
 
     def test_get_course_non_unicode_char(self, m):
         register_uris({"course": ["unicode_encode_error"]}, m)
