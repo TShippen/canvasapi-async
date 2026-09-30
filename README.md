@@ -100,9 +100,12 @@ The package is not on PyPI. Install it from the repository:
 pip install git+https://github.com/TShippen/canvasapi-async.git
 ```
 
-This installs the latest commit on the `develop` branch. To install a fixed
-point instead, append `@` and a commit hash or tag to the URL. Python 3.10 or
-later is required.
+This installs the `main` branch, which moves only when a version is ready.
+Development happens on `develop`. To install its latest commit, append
+`@develop` to the URL; to install a fixed point, append `@` and a commit hash.
+pip does not replace an installed copy whose version string has not changed,
+so to update an install from `develop`, add `--force-reinstall`. Python 3.10
+or later is required.
 
 ## Using the library
 
